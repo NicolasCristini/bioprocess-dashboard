@@ -1,0 +1,20 @@
+{
+  "_comment": "Pinned runtime for the offline in-browser app. scripts/vendor_runtime.py downloads exactly these into web/vendor/ (not committed).",
+  "stlite": "1.11.0",
+  "pyodide": "0.29.3",
+  "pyodide_packages": [
+    "altair", "annotated-types", "anyio", "attrs", "cramjam", "fastparquet", "fsspec", "jinja2",
+    "jsonschema", "jsonschema-specifications", "markupsafe", "micropip", "narwhals", "numpy",
+    "packaging", "pandas", "pillow", "pydantic", "pydantic-core", "pyodide-http", "pyrsistent",
+    "python-dateutil", "pytz", "pyyaml", "referencing", "rpds-py", "six", "sniffio", "ssl",
+    "starlette", "typing-extensions", "typing-inspection", "libopenssl"
+  ],
+  "pypi": {
+    "plotly": "7.1.0",
+    "openpyxl": "3.1.5",
+    "et-xmlfile": "2.0.0",
+    "protobuf": "7.36.2",
+    "itsdangerous": "2.2.0",
+    "python-multipart": "0.0.32"
+  }
+}

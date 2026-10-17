@@ -1,6 +1,6 @@
 # Bioprocess Dashboard: build plan v3
 
-**Status:** v3, revised after Nicolas's §9 and §10 answers (2026-10-17). All questions are answered; it awaits approval to start M0. No app code yet.
+**Status:** v3, approved. **M0 done (2026-10-17):** the stlite spike passed; see [`M0_SPIKE.md`](M0_SPIKE.md). Next: M1, the model and tests.
 **What it is:** a personal project. It is a browser-based planner for batch → fed-batch → continuous (bleed & feed) cell-culture processes, and it replaces an earlier spreadsheet planner. The spreadsheet stays in use separately while the app is under development.
 **Model spec:** [`../MODEL.md`](../MODEL.md) (v1.1) holds every parameter, equation, check and assumption. This plan does not repeat the formulas.
 
@@ -69,7 +69,7 @@ The app runs **on localhost only** (§10.3). stlite stays the primary choice bec
 - pydantic v2 for input models and validation;
 - pandas for the time table;
 - uv for the environment;
-- Python 3.12, matching the Pyodide version stlite ships.
+- Python 3.13, matching the Pyodide version stlite ships (0.29.x; confirmed in M0).
 
 **Unlike the example app:** there are **no external API calls** (the example sends data to Gemini), no CDN-loaded analytics, and Streamlit usage stats are off (`browser.gatherUsageStats = false`).
 
@@ -93,7 +93,7 @@ bioprocess-dashboard/
 ├── CLAUDE.md                  # project map (M0)
 ├── MODEL.md                   # model spec: parameters, equations, checks, assumptions
 ├── README.md                  # what it is, run locally, privacy note
-├── pyproject.toml             # uv; python 3.12
+├── pyproject.toml             # uv; python 3.13
 ├── _plan/PLAN.md              # this file
 ├── src/bioprocess/            # pure model, no UI imports
 │   ├── models.py              # Setup, Metabolite, FeedRegime, Phase (Batch|FedBatch|Continuous), Scenario

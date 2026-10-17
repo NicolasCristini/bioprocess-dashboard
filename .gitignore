@@ -3,5 +3,7 @@ __pycache__/
 *.pyc
 .pytest_cache/
 .DS_Store
+# offline runtime, fetched by scripts/vendor_runtime.py (~77 MB)
+web/vendor/
 # confidential scenarios never leave this machine
 scenarios/private/

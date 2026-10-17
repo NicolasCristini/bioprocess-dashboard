@@ -1,0 +1,31 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>stlite spike</title>
+  <link rel="stylesheet" href="../vendor/stlite/stlite.css" />
+</head>
+<body>
+  <div id="root"></div>
+  <script type="module">
+    import { mount } from "../vendor/stlite/stlite.js";
+    // Everything is served from web/vendor/ (scripts/vendor_runtime.py): no request leaves localhost.
+    const local = (p) => new URL(`../vendor/${p}`, location.href).href;
+    const pypiWheels = await (await fetch(local("pypi/wheels.json"))).json();
+    mount(
+      {
+        entrypoint: "spike_app.py",
+        files: { "spike_app.py": { url: "./spike_app.py" } },
+        pyodideUrl: local("pyodide/pyodide.mjs"),
+        // Pure-Python PyPI wheels are unpacked into site-packages before micropip runs, so it never queries PyPI.
+        archives: pypiWheels.map((w) => ({ url: local(`pypi/${w}`), format: "wheel" })),
+        requirements: ["numpy", "pandas", "pydantic", "pyyaml", "plotly", "openpyxl"],
+        idbfsMountpoints: ["/mnt"],
+        streamlitConfig: { "browser.gatherUsageStats": false },
+      },
+      document.getElementById("root"),
+    );
+  </script>
+</body>
+</html>
