@@ -101,7 +101,12 @@ input[type="number"] {{ font-family: var(--bp-mono); }}
 [data-testid="stPlotlyChart"] {{ background: #FFFFFF; border: 1px solid var(--bp-line); border-radius: var(--bp-card);
   overflow: hidden; box-sizing: border-box; }}
 [data-testid="stPlotlyChart"] .modebar-container {{ right: 8px !important; top: 4px !important; }}
-.bp-dl-row {{ margin-top: -4px; }}
+/* chart download row (Plot SVG / Legend / Data CSV): compact */
+[class*="st-key-svg_"] button, [class*="st-key-leg_"] button, [class*="st-key-csv_"] button {{
+  min-height: 0 !important; height: 28px; padding: 0 11px !important; font-size: 12.5px !important; gap: 4px; }}
+[class*="st-key-svg_"] button p, [class*="st-key-leg_"] button p, [class*="st-key-csv_"] button p {{ font-size: 12.5px !important; }}
+[class*="st-key-svg_"] [data-testid="stIconMaterial"], [class*="st-key-leg_"] [data-testid="stIconMaterial"],
+[class*="st-key-csv_"] [data-testid="stIconMaterial"] {{ font-size: 15px !important; }}
 
 /* ---------- custom components */
 .bp-top {{ display:flex; align-items:flex-end; justify-content:space-between; gap:16px; flex-wrap:wrap;
