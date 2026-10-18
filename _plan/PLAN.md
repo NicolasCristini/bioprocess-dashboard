@@ -1,6 +1,6 @@
 # Bioprocess Dashboard: build plan v3
 
-**Status:** v3, approved. **M0–M7 done (2026-10-18).** See [`M0_SPIKE.md`](M0_SPIKE.md) for runtime findings, and §11 for the delivery notes.
+**Status:** v4 (2026-10-18): **static site with a shareable link, data only in the browser** (§12). v3: M0–M7 done. See [`M0_SPIKE.md`](M0_SPIKE.md) for runtime findings, and §11 for the delivery notes.
 **What it is:** a personal project. It is a browser-based planner for batch → fed-batch → continuous (bleed & feed) cell-culture processes, and it replaces an earlier spreadsheet planner. The spreadsheet stays in use separately while the app is under development.
 **Model spec:** [`../MODEL.md`](../MODEL.md) (v1.1) holds every parameter, equation, check and assumption. This plan does not repeat the formulas.
 
@@ -322,3 +322,39 @@ Folded into §0. Point 13 was applied by rewording the plan, so this file no lon
 - In the browser build, deep links open *Start here*.
 - Playback speed has only been checked in the embedded pane, which throttles when hidden.
 - The console shows a harmless "Download Button fetch error" (see M0_SPIKE.md).
+
+
+---
+
+## 12. v4: always a shareable link, data only in the browser (2026-10-18)
+
+**Decision (Nicolas):** the app must always work from a shareable link, keeping data in the browser and not
+on a server. This replaces §10.3 ("localhost only, no shareable link").
+
+**What changed:**
+
+| Before (v3) | After (v4) |
+|---|---|
+| `scripts/serve.py` built the file list and mounted `app/`, `src/` on request, and sent the CSP as a header | `scripts/build_site.py` writes a self-contained static site `dist/`. No server logic at all. |
+| CSP header from the local server | CSP inside the page (`<meta>`). It binds the Python worker too (verified: a fetch to example.com from Python is refused). |
+| Root path only | `<base href>`, so the site works under any sub-path (GitHub Pages `/<repo>/`). `404.html` = the app shell, so deep links load the app. |
+| IndexedDB mount `/mnt` | `/bioprocess-planner`: unique to this app, because all Pages sites of an account share one origin |
+| Local only | `.github/workflows/site.yml`: tests on every push; build + deploy to GitHub Pages when `DEPLOY_PAGES` is `true` |
+
+**Verified in the built-in browser,** on the `dist/` site served under `/bioprocess-dashboard/` by a plain static server
+with no headers:
+- boot;
+- deep link → app root;
+- save to IndexedDB, full reload, scenario still listed;
+- the CSP blocks an outbound request from the worker.
+
+**Hosting.** GitHub Pages on the free plan needs a **public** repository. A Pages site is always public anyway, and
+that is the point of a shareable link. The page ships the Python sources and the placeholder example, so the code is
+visible to anyone with the link. Visitors' data is not: it never leaves their browser. Options:
+1. Make this repository public and enable Pages (simplest; one workflow).
+2. Keep this repository private; publish only `dist/` to a separate public repository, or to Netlify / Cloudflare
+   Pages (accounts needed).
+3. GitHub Pro: Pages from the private repository (the site is still public).
+
+**Storage caveat for users:** browser storage is per browser and per site. Another device or browser does not see the
+scenarios; use *Export all* / import to move them. Clearing site data deletes them.

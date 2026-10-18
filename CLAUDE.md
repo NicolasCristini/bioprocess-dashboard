@@ -2,16 +2,18 @@
 
 A personal project: a browser-based planner for batch → fed-batch → continuous (bleed & feed)
 cell-culture processes. Python model + Streamlit UI that runs **inside the browser** (stlite /
-Pyodide), served from localhost only.
+Pyodide), published as a **static site with a shareable link**. There is no server logic: each visitor's
+inputs and saved scenarios stay in their own browser.
 
 ## Read first
 - `MODEL.md`: the model spec (parameters, equations, checks, assumptions, reference numbers). Code follows it.
 - `_plan/PLAN.md`: the build plan and milestones. `_plan/M0_SPIKE.md`: runtime findings.
 
 ## Non-negotiable rules
-- **Inputs are confidential and never leave the machine.** No hosting, no external API calls, no
-  telemetry, no CDN assets. `scripts/serve.py` enforces this with a this-origin-only CSP. Never loosen
-  it to allow another host.
+- **Inputs are confidential and never leave the visitor's browser.** Use static hosting only: no backend, no
+  server-side state, no external API calls, no telemetry, no CDN assets. The page carries a this-origin-only
+  CSP (`<meta>`, defined in `scripts/build_site.py`) that binds the Python worker too. Never loosen it to allow
+  another host.
 - **No references to the origin of this project** in any file or commit. Present it as a personal project.
 - Never commit scenario data from `scenarios/private/` (gitignored). `scenarios/examples/` holds
   placeholder values only.
@@ -33,8 +35,9 @@ Pyodide), served from localhost only.
 ```bash
 uv sync --extra dev            # Python 3.13 venv
 uv run pytest -q
-./run.sh                       # in-browser app on http://localhost:8765 (fetches web/vendor/ on first run)
-./run.sh spike/                # runtime health check page
+./run.sh                       # build dist/ and preview it on http://localhost:8765/ (fetches web/vendor/ on first run)
+./run.sh --base /bioprocess-dashboard/   # rehearse the GitHub Pages sub-path
+python3 scripts/build_site.py --base /<repo>/   # the static site, for any host
 uv run streamlit run app/Home.py --server.address 127.0.0.1   # native mode (dev / fallback)
 ```
 
@@ -44,8 +47,14 @@ uv run streamlit run app/Home.py --server.address 127.0.0.1   # native mode (dev
 - PyPI wheels are pre-installed through stlite `archives` (`format: "wheel"`), not as URL
   requirements: micropip otherwise races to PyPI.
 - A full page load boots Pyodide (~5 s with a warm cache). Keep heavy imports (openpyxl) lazy.
-- `scripts/serve.py` serves only `web/`, plus read-only `.py` files from `app/` and `src/bioprocess/` and `/manifest.json`.
-  A new Python source file is picked up automatically; any other new asset belongs in `web/`.
-- In stlite, deep links open *Start here* (the URL is reset to `/`). Use sidebar navigation.
+- `scripts/build_site.py` copies `app/` and `src/bioprocess/`, writes `manifest.json`, fills the `web/index.html`
+  template (base path + CSP) into `index.html` and `404.html`, and copies the runtime. `scripts/serve.py` is a plain
+  static preview: it adds no headers or logic.
+- Every URL in the page shell must stay relative to `<base href>`: the site runs under a sub-path on GitHub Pages.
+- Browser storage is the IndexedDB mount `/bioprocess-planner`. It must be top-level (a nested `/mnt/...` mount fails
+  at boot) and unique to the app, because all Pages sites of one account share one origin.
+- In stlite, deep links open *Start here* (the URL is reset to the base). Use sidebar navigation.
+- `.github/workflows/site.yml` runs the tests on every push. It builds and deploys to Pages only when the repo
+  variable `DEPLOY_PAGES` is `true`.
 - Tests: `tests/test_against_sheet.py` (day-by-day parity with the original spreadsheet, bolus mode) and
   `tests/test_reference.py` (MODEL.md §5) are the regression tripwires.

@@ -81,3 +81,13 @@ try:
 except Exception as e:  # noqa: BLE001
     src["micropip"] = repr(e)
 st.json(src)
+
+# Opt-in (open the page with ?csp-test): prove the page's CSP also binds the Python worker.
+if "csp-test" in st.query_params:
+    st.subheader("CSP check from inside the Python worker")
+    from pyodide.http import pyfetch
+    try:
+        await pyfetch("https://example.com/")  # noqa: F704 - top-level await is fine in stlite
+        st.error("CSP-TEST: external request ALLOWED")
+    except Exception as e:  # noqa: BLE001
+        st.success(f"CSP-TEST: external request BLOCKED ({type(e).__name__})")

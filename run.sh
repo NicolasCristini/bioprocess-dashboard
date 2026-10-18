@@ -1,8 +1,11 @@
 #!/usr/bin/env bash
-# Serve the in-browser app on localhost only (strict CSP) and open it. Usage: ./run.sh [page], e.g. ./run.sh spike/
+# Build the static site and preview it locally. Usage: ./run.sh [--base /repo-name/]
 set -euo pipefail
 cd "$(dirname "$0")"
 [ -f web/vendor/pyodide/pyodide.mjs ] || python3 scripts/vendor_runtime.py
+BASE="/"
+if [ "${1:-}" = "--base" ]; then BASE="$2"; fi
+python3 scripts/build_site.py --base "$BASE"
 PORT="${PORT:-8765}"
-(sleep 1 && open "http://localhost:$PORT/${1:-}") &   # the app boots in the browser (~5 s)
-exec python3 scripts/serve.py "$PORT"
+(sleep 1 && open "http://localhost:$PORT$BASE") &
+exec python3 scripts/serve.py "$PORT" --base "$BASE"

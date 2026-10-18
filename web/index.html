@@ -2,24 +2,30 @@
 <html lang="en">
 <head>
   <meta charset="utf-8" />
+  <!-- Template: scripts/build_site.py fills BASE and CSP and writes dist/index.html + dist/404.html. -->
+  <!-- The CSP travels with the page, so on ANY static host the browser refuses requests to other hosts:
+       inputs and saved scenarios cannot leave the browser. -->
+  <meta http-equiv="Content-Security-Policy" content="{{CSP}}" />
+  <base href="{{BASE}}" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <title>Bioprocess Phase Planner</title>
-  <link rel="stylesheet" href="/vendor/stlite/stlite.css" />
+  <link rel="stylesheet" href="vendor/stlite/stlite.css" />
   <style>
-    #boot { font: 15px system-ui, sans-serif; color: #666; text-align: center; margin-top: 18vh; }
+    #boot { font: 15px system-ui, sans-serif; color: #666; text-align: center; margin-top: 18vh; padding: 0 16px; }
     #boot b { color: #333; }
   </style>
 </head>
 <body>
   <div id="boot"><b>Bioprocess Phase Planner</b><br><br>Starting the in-browser Python runtime…<br>
-    <small>This takes about half a minute on each full page load. Everything runs locally; nothing leaves this computer.</small></div>
+    <small>Everything runs inside this browser tab. Your inputs and saved scenarios never leave this browser.</small></div>
   <div id="root"></div>
   <script type="module">
-    import { mount } from "/vendor/stlite/stlite.js";
-    // stlite routes pages relative to the URL it starts on: always start at "/" (deep links open Start here)
-    if (location.pathname !== "/") history.replaceState(null, "", "/");
-    // Served by scripts/serve.py: runtime from web/vendor/, Python sources from app/ and src/bioprocess/.
-    const local = (p) => new URL(p, location.href).href;
+    import { mount } from "./vendor/stlite/stlite.js";
+    const BASE = document.baseURI;                       // e.g. https://user.github.io/repo/  or  http://localhost:8765/
+    const basePath = new URL(BASE).pathname;
+    // stlite routes pages relative to the URL it starts on: always start at the app root (deep links open Start here)
+    if (location.pathname !== basePath) history.replaceState(null, "", basePath);
+    const local = (p) => new URL(p, BASE).href;
     const [wheels, sources] = await Promise.all([
       fetch(local("vendor/pypi/wheels.json")).then((r) => r.json()),
       fetch(local("manifest.json")).then((r) => r.json()),
@@ -34,7 +40,9 @@
         // pure-Python PyPI wheels go in before micropip runs, so it never queries PyPI
         archives: wheels.map((w) => ({ url: local(`vendor/pypi/${w}`), format: "wheel" })),
         requirements: ["numpy", "pandas", "pydantic", "pyyaml", "plotly", "openpyxl"],
-        idbfsMountpoints: ["/mnt"],
+        // browser storage (IndexedDB) under a name unique to this app, so other apps on the same host cannot collide
+        idbfsMountpoints: ["/bioprocess-planner"],
+        env: { BIOPROCESS_STORE: "/bioprocess-planner/scenarios" },
         streamlitConfig: { "browser.gatherUsageStats": false, "client.toolbarMode": "minimal",
                            "theme.primaryColor": "#2f7ed8" },
       },

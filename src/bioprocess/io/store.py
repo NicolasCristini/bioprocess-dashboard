@@ -1,6 +1,7 @@
 """Scenario library on a directory: the IndexedDB mount in the browser (/mnt), a local folder natively."""
 from __future__ import annotations
 
+import os
 import re
 import sys
 from datetime import datetime
@@ -13,8 +14,10 @@ IN_BROWSER = sys.platform == "emscripten"
 
 
 def default_dir() -> Path:
+    if os.environ.get("BIOPROCESS_STORE"):          # set by web/index.html: the app's IndexedDB mount
+        return Path(os.environ["BIOPROCESS_STORE"])
     if IN_BROWSER:
-        return Path("/mnt/scenarios")
+        return Path("/bioprocess-planner/scenarios")
     return Path(__file__).resolve().parents[3] / "scenarios" / "private"
 
 

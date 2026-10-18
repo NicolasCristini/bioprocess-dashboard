@@ -61,3 +61,9 @@ def test_autosave_round_trip(tmp_path):
     assert st.list() == []          # the working copy is not a saved scenario
     (tmp_path / st.AUTOSAVE).write_text("{broken")
     assert st.restore() is None
+
+
+def test_store_dir_from_environment(monkeypatch, tmp_path):
+    from bioprocess.io import store
+    monkeypatch.setenv("BIOPROCESS_STORE", str(tmp_path / "x"))
+    assert store.default_dir() == tmp_path / "x"

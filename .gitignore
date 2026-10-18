@@ -7,3 +7,5 @@ __pycache__/
 web/vendor/
 # confidential scenarios never leave this machine
 scenarios/private/
+# built static site (scripts/build_site.py)
+dist/

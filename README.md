@@ -4,18 +4,27 @@ A planner for cell-culture processes built from phases (batch, fed-batch, contin
 It predicts cell density, metabolites, working volume, medium use and biomass, **hour by hour**, and
 compares scenarios side by side.
 
-**Privacy:** the app runs entirely in your browser from `localhost`. Inputs and saved scenarios stay on your
-computer, in the browser's storage. The local server blocks every request to another host (Content-Security-Policy).
+**Privacy:** the app is a static web page and the Python runs inside your browser tab. There is no server
+behind it: inputs and saved scenarios stay in your browser's storage. Share the link freely, because every visitor
+works with their own data. The page's Content-Security-Policy makes the browser refuse any request to another host.
 
 **Status:** v1 (milestones M0–M7). **All numbers are placeholders.**
 
 ## Run
 
-Requires Python 3.13 (via [uv](https://docs.astral.sh/uv/)), plus npm on the first run to fetch the runtime (~75 MB, then offline).
+Open the shared link, or preview locally. Local preview needs Python 3.13 (via [uv](https://docs.astral.sh/uv/)),
+plus npm on the first run to fetch the runtime (~75 MB):
 
 ```bash
-./run.sh            # in-browser app on http://localhost:8765
+./run.sh            # builds dist/ and opens http://localhost:8765/
 ```
+
+## Publish (shareable link)
+
+`python3 scripts/build_site.py --base /<path>/` writes a self-contained static site to `dist/`, for any static
+host. On GitHub Pages, `.github/workflows/site.yml` does it on every push once the repository variable
+`DEPLOY_PAGES` is `true` and Pages is set to "GitHub Actions". The link then looks like
+`https://<user>.github.io/bioprocess-dashboard/`.
 
 Native mode is for development, or as the fallback. Scenarios are then saved in `scenarios/private/` (gitignored):
 
