@@ -11,12 +11,17 @@
   <title>Bioprocess Phase Planner</title>
   <link rel="stylesheet" href="vendor/stlite/stlite.css" />
   <style>
-    #boot { font: 15px system-ui, sans-serif; color: #666; text-align: center; margin-top: 18vh; padding: 0 16px; }
-    #boot b { color: #333; }
+    html, body { background: #0B0C0E; }
+    #boot { font: 14px system-ui, sans-serif; color: #A3A9B3; text-align: center; margin-top: 22vh; padding: 0 16px; }
+    #boot b { color: #E8EAED; font-size: 16px; font-weight: 600; }
+    #boot .bar { width: 160px; height: 3px; margin: 18px auto; border-radius: 3px; background: #262A31; overflow: hidden; }
+    #boot .bar i { display: block; width: 40%; height: 100%; background: #3FB8A0; border-radius: 3px; animation: slide 1.2s ease-in-out infinite; }
+    @keyframes slide { 0% { transform: translateX(-100%); } 100% { transform: translateX(250%); } }
+    @media (prefers-reduced-motion: reduce) { #boot .bar i { animation: none; width: 100%; } }
   </style>
 </head>
 <body>
-  <div id="boot"><b>Bioprocess Phase Planner</b><br><br>Starting the in-browser Python runtime…<br>
+  <div id="boot"><b>Bioprocess Phase Planner</b><div class="bar"><i></i></div>Starting the in-browser Python runtime.<br>
     <small>Everything runs inside this browser tab. Your inputs and saved scenarios never leave this browser.</small></div>
   <div id="root"></div>
   <script type="module">
@@ -30,7 +35,8 @@
       fetch(local("vendor/pypi/wheels.json")).then((r) => r.json()),
       fetch(local("manifest.json")).then((r) => r.json()),
     ]);
-    const files = Object.fromEntries(sources.map((f) => [f, { url: local(f) }]));
+    const served = (f) => (f === ".streamlit/config.toml" ? "theme/config.toml" : f);
+    const files = Object.fromEntries(sources.map((f) => [f, { url: local(served(f)) }]));
     document.getElementById("boot").remove();
     mount(
       {
@@ -43,8 +49,8 @@
         // browser storage (IndexedDB) under a name unique to this app, so other apps on the same host cannot collide
         idbfsMountpoints: ["/bioprocess-planner"],
         env: { BIOPROCESS_STORE: "/bioprocess-planner/scenarios" },
-        streamlitConfig: { "browser.gatherUsageStats": false, "client.toolbarMode": "minimal",
-                           "theme.primaryColor": "#2f7ed8" },
+        // theme generated from app/ui/tokens.py by scripts/build_site.py
+        streamlitConfig: {{STREAMLIT_CONFIG}},
       },
       document.getElementById("root"),
     );

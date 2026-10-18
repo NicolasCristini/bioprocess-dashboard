@@ -3,23 +3,24 @@ import streamlit as st
 from bioprocess.defaults import example_scenario
 from bioprocess.io.scenario_file import from_text, to_yaml
 from bioprocess.io.store import slug
-from ui import state
+from ui import state, theme
 
 store = state.store()
 sc = state.sc()
-st.title("My scenarios")
-st.caption(state.STORAGE_NOTE)
+theme.top("My scenarios", state.STORAGE_NOTE)
 
 c1, c2, c3 = st.columns([2, 1, 1])
 existing = {d["name"] for d in store.list()}
-status = "● unsaved changes" if state.unsaved() or sc.name not in existing else "saved"
-c1.markdown(f"**Current:** {sc.name}  · {status}")
-if c2.button("💾 Save", width="stretch", type="primary"):
+status = "new" if sc.name not in existing else "unsaved" if state.unsaved() else "saved"
+c1.html(f'<div style="display:flex;gap:10px;align-items:center;padding-top:6px"><span class="bp-panel-title" '
+        f'style="margin:0">{theme.esc(sc.name)}</span><span class="bp-chip {"accent" if status == "saved" else "warning"}">'
+        f'{dict(new="Not saved yet", unsaved="Unsaved changes", saved="Saved")[status]}</span></div>')
+if c2.button("Save", icon=":material/save:", width="stretch", type="primary"):
     store.save(sc)
     state.replace(sc, saved=True)
     st.toast(f"Saved “{sc.name}”.")
     st.rerun()
-with c3.popover("Save as copy…", width="stretch"):
+with c3.popover("Save as copy", icon=":material/content_copy:", width="stretch"):
     new_name = st.text_input("New name", f"{sc.name} (copy)")
     if st.button("Save copy", disabled=not new_name.strip()):
         copy = sc.model_copy(deep=True, update={"name": new_name.strip()})
@@ -35,14 +36,14 @@ if not items:
     st.info("No saved scenarios yet.")
 for d in items:
     a, b, c, e, f = st.columns([4, 2, 1, 1, 1])
-    a.markdown(f"**{d['name']}**" + ("" if d["ok"] else "  ⚠ unreadable"))
+    a.markdown(f"**{d['name']}**" + ("" if d["ok"] else "  (unreadable)"))
     b.caption(d["modified"].strftime("%Y-%m-%d %H:%M"))
-    if c.button("Open", key=f"open_{d['file']}", disabled=not d["ok"]):
+    if c.button("Open", key=f"open_{d['file']}", disabled=not d["ok"], icon=":material/open_in_new:"):
         state.replace(store.load(d["file"]), saved=True)
         st.switch_page("pages/p4_results.py")
-    e.download_button("⬇", (store.root / d["file"]).read_bytes(), d["file"], "application/x-yaml",
-                      key=f"dl_{d['file']}", help="Download YAML")
-    with f.popover("🗑"):
+    e.download_button("", (store.root / d["file"]).read_bytes(), d["file"], "application/x-yaml",
+                      key=f"dl_{d['file']}", help="Download YAML", icon=":material/download:")
+    with f.popover("", icon=":material/delete:"):
         st.write(f"Delete “{d['name']}”?")
         if st.button("Delete", key=f"del_{d['file']}", type="primary"):
             store.delete(d["file"])
@@ -74,14 +75,14 @@ with u1:
             st.error(str(err))
 with u2:
     st.markdown("**Backup / new**")
-    st.download_button("⬇ Export all (.zip)", store.export_all(), "scenarios_backup.zip", "application/zip",
-                       disabled=not items)
-    st.download_button("⬇ Current as YAML", to_yaml(sc), f"{slug(sc.name)}.yaml", "application/x-yaml")
-    if st.button("New from example"):
+    st.download_button("Export all (.zip)", store.export_all(), "scenarios_backup.zip", "application/zip",
+                       disabled=not items, icon=":material/archive:")
+    st.download_button("Current as YAML", to_yaml(sc), f"{slug(sc.name)}.yaml", "application/x-yaml", icon=":material/download:")
+    if st.button("New from example", icon=":material/add:"):
         state.replace(example_scenario(), example=True)
         st.switch_page("pages/p1_setup.py")
 
-with st.expander("Clear my data"):
+with st.expander("Clear my data", icon=":material/delete_forever:"):
     st.write("Deletes every saved scenario from this " + ("browser." if "browser" in state.STORAGE_NOTE else "folder."))
     sure = st.checkbox("I have a backup or do not need them")
     if st.button("Delete all saved scenarios", disabled=not sure, type="primary"):

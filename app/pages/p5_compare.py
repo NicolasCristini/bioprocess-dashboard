@@ -3,19 +3,19 @@ import streamlit as st
 
 from bioprocess.compare import key_numbers_table, long_series
 from bioprocess.simulate import simulate
-from ui import state
+from ui import state, theme
 from ui.charts import SCEN_COLORS, _layout
 
-st.title("5 · Compare")
-st.caption("Overlay the current scenario and saved ones. Runs that were stopped (⛔) are listed but not overlaid.")
+theme.top("Compare", "Overlay the current scenario and saved ones. Runs that stopped early are listed but not drawn.")
 
 store = state.store()
 saved = [d for d in store.list() if d["ok"]]
-CURRENT = f"● Current: {state.sc().name}"
+CURRENT = f"Current: {state.sc().name}"
 options = [CURRENT] + [d["name"] for d in saved]
-pick = st.multiselect("Scenarios (2–6)", options, default=options[: min(3, len(options))], max_selections=6)
+pick = st.multiselect("Scenarios (2 to 6)", options, default=options[: min(3, len(options))], max_selections=6)
 if len(pick) < 2:
-    st.info("Pick at least two scenarios. Save variants in **My scenarios** (e.g. *Save as copy* after a change).")
+    st.info("Pick at least two scenarios. Save variants in **My scenarios** (for example *Save as copy* after a change).",
+            icon=":material/info:")
     st.stop()
 
 results = {}
@@ -32,7 +32,7 @@ for name in pick:
 
 for name, r in results.items():
     if not r.ok:
-        st.warning(f"⛔ **{name}** has blocking problems and is left out of the charts and table.")
+        st.warning(f"**{name}** has blocking problems and is left out of the charts and table.", icon=":material/block:")
 
 names_ok = [n for n, r in results.items() if r.ok]
 if not names_ok:
@@ -44,7 +44,7 @@ def _num(v):
 
 
 fmt = {c: (lambda v: f"{v:+.1f} %") if c.startswith("Δ%") else _num for c in tbl.columns}
-st.dataframe(tbl.style.format(fmt, na_rep="—"), width="stretch")
+st.dataframe(tbl.style.format(fmt, na_rep="-"), width="stretch")
 
 VARS = {"VCC (cells/mL)": "vcc", "Working volume (L)": "volume_L", "Cum. fresh medium (L)": "cum_fresh_L",
         "Cum. harvest (L)": "cum_harvest_L", "Cum. bleed (L)": "cum_bleed_L",

@@ -38,6 +38,20 @@ CSP = "; ".join([
 ])
 
 
+def streamlit_config() -> dict:
+    """Primitive settings passed to stlite's mount() (it accepts no lists). The theme travels as a mounted
+    .streamlit/config.toml instead (see build)."""
+    return {"browser.gatherUsageStats": False, "client.toolbarMode": "minimal"}
+
+
+def theme_toml() -> str:
+    import importlib.util
+    spec = importlib.util.spec_from_file_location("sync_theme", ROOT / "scripts" / "sync_theme.py")
+    mod = importlib.util.module_from_spec(spec)
+    spec.loader.exec_module(mod)
+    return mod.render(native=False)
+
+
 def build(base: str = "/", out: Path = ROOT / "dist") -> Path:
     if not base.startswith("/") or not base.endswith("/"):
         raise SystemExit("--base must start and end with '/', e.g. /bioprocess-dashboard/")
@@ -55,12 +69,19 @@ def build(base: str = "/", out: Path = ROOT / "dist") -> Path:
             (out / rel).parent.mkdir(parents=True, exist_ok=True)
             shutil.copy2(p, out / rel)
             files.append(rel)
+    # theme from app/ui/tokens.py: served as theme/config.toml (no dot-folder, which static hosts may drop),
+    # mounted by index.html at .streamlit/config.toml where Streamlit reads it
+    (out / "theme").mkdir()
+    (out / "theme" / "config.toml").write_text(theme_toml())
+    files.append(".streamlit/config.toml")
     (out / "manifest.json").write_text(json.dumps(files, indent=1))
 
     page = (WEB / "index.html").read_text(encoding="utf-8").replace("{{CSP}}", CSP).replace("{{BASE}}", base)
+    page = page.replace("{{STREAMLIT_CONFIG}}", json.dumps(streamlit_config()))
     for name in ("index.html", "404.html"):
         (out / name).write_text(page, encoding="utf-8")
 
+    shutil.copytree(ROOT / "app" / "static", out / "app" / "static")     # fonts (OFL), referenced by the theme
     shutil.copytree(WEB / "vendor", out / "vendor")
     spike = (WEB / "spike" / "index.html").read_text(encoding="utf-8")
     (out / "spike").mkdir()

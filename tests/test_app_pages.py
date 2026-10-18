@@ -12,12 +12,20 @@ sys.path.insert(0, str(APP))
 PAGES = sorted((APP / "pages").glob("*.py"))
 
 
+def test_all_app_files_compile():
+    """AppTest does NOT fail on a SyntaxError (it logs it and renders nothing), so compile explicitly."""
+    import py_compile
+    for f in sorted(APP.rglob("*.py")):
+        py_compile.compile(str(f), doraise=True)
+
+
 @pytest.mark.parametrize("page", PAGES, ids=lambda p: p.stem)
 def test_page_runs_without_exception(page, tmp_path, monkeypatch):
     monkeypatch.setattr("bioprocess.io.store.default_dir", lambda: tmp_path / "lib")
     at = AppTest.from_file(str(page), default_timeout=60)
     at.run()
     assert not at.exception, [e.message for e in at.exception]
+    assert len(at.get("html")) > 0, "page rendered nothing (compile error?)"
 
 
 def test_router_runs(tmp_path, monkeypatch):
@@ -31,10 +39,10 @@ def test_results_page_shows_reference_numbers(tmp_path, monkeypatch):
     monkeypatch.setattr("bioprocess.io.store.default_dir", lambda: tmp_path / "lib")
     at = AppTest.from_file(str(APP / "pages" / "p4_results.py"), default_timeout=60)
     at.run()
-    metrics = {m.label: m.value for m in at.metric}
-    assert metrics["Total fresh medium"] == "6.800 L"
-    assert metrics["Max working volume"] == "1.060 L"
-    assert metrics["Total wet biomass"] == "93.6 g"
+    page = " ".join(str(h.proto.body) for h in at.get("html"))
+    assert "Total fresh medium</div><div class=\"v\">6.800<small>L" in page
+    assert "Max working volume</div><div class=\"v\">1.060<small>L" in page
+    assert "Total wet biomass</div><div class=\"v\">93.6<small>g" in page
 
 
 def test_compare_page_with_saved_scenarios(tmp_path, monkeypatch):
@@ -68,7 +76,7 @@ def test_library_save_button(tmp_path, monkeypatch):
     monkeypatch.setattr("bioprocess.io.store.default_dir", lambda: lib)
     at = AppTest.from_file(str(APP / "pages" / "library.py"), default_timeout=60)
     at.run()
-    save = next(b for b in at.button if b.label == "💾 Save")
+    save = next(b for b in at.button if b.label == "Save")
     save.click().run()
     assert not at.exception
     assert [p.name for p in lib.glob("*.yaml")] == ["Example-plan-placeholder-values.yaml"]

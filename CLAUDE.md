@@ -31,6 +31,10 @@ inputs and saved scenarios stay in their own browser.
 - `web/`: the in-browser shell. `web/vendor.json` pins stlite, Pyodide and the wheels.
   `web/vendor/` is fetched by `scripts/vendor_runtime.py` and not committed. `web/spike/` is the runtime health check.
 - `tests/`: pytest.
+- **Design system:** `DESIGN.md` (spec), `app/ui/tokens.py` (the values; the only place colours, fonts and radii
+  live), `app/ui/theme.py` (CSS layer, Plotly template, HTML components: `top`, `kpis`, `chips`, `issues`).
+  After editing tokens, run `python3 scripts/sync_theme.py` (a test fails otherwise). No emoji or em-dashes in UI copy;
+  icons are `:material/...:`.
 
 ## How to run
 ```bash
@@ -57,5 +61,8 @@ uv run streamlit run app/Home.py --server.address 127.0.0.1   # native mode (dev
 - In stlite, deep links open *Start here* (the URL is reset to the base). Use sidebar navigation.
 - `.github/workflows/site.yml` runs the tests on every push. It builds and deploys to Pages only when the repo
   variable `DEPLOY_PAGES` is `true`.
+- stlite's `mount(streamlitConfig=...)` accepts primitives only, so the theme (lists: fonts, chart colours) ships as
+  `theme/config.toml`, mounted at `.streamlit/config.toml`. Fonts are self-hosted in `app/static/fonts/`.
+- AppTest does not fail on a page SyntaxError; `test_all_app_files_compile` covers it.
 - Tests: `tests/test_against_sheet.py` (day-by-day parity with the original spreadsheet, bolus mode) and
   `tests/test_reference.py` (MODEL.md §5) are the regression tripwires.

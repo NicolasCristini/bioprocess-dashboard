@@ -11,45 +11,52 @@ import streamlit as st  # noqa: E402
 
 from bioprocess import MODEL_VERSION  # noqa: E402
 from bioprocess.checks import validate  # noqa: E402
-from ui import state  # noqa: E402
+from ui import state, theme  # noqa: E402
 
-st.set_page_config(page_title="Bioprocess Phase Planner", page_icon="🧫", layout="wide")
+st.set_page_config(page_title="Bioprocess Phase Planner", page_icon=":material/science:", layout="wide")
+theme.inject()
 state.init()
 
 pages = {
-    "": [st.Page("pages/home.py", title="Start here", icon="🏠", default=True)],
+    "": [st.Page("pages/home.py", title="Overview", icon=":material/space_dashboard:", default=True)],
     "Inputs": [
-        st.Page("pages/p1_setup.py", title="1 · Setup", icon="⚙️", url_path="setup"),
-        st.Page("pages/p2_phases.py", title="2 · Phases", icon="🧩", url_path="phases"),
-        st.Page("pages/p3_regimes.py", title="3 · Feed regimes", icon="💧", url_path="regimes"),
+        st.Page("pages/p1_setup.py", title="Setup", icon=":material/tune:", url_path="setup"),
+        st.Page("pages/p2_phases.py", title="Phases", icon=":material/timeline:", url_path="phases"),
+        st.Page("pages/p3_regimes.py", title="Feed regimes", icon=":material/water_drop:", url_path="regimes"),
     ],
     "Outputs": [
-        st.Page("pages/p4_results.py", title="4 · Results", icon="📈", url_path="results"),
-        st.Page("pages/p5_compare.py", title="5 · Compare", icon="⚖️", url_path="compare"),
+        st.Page("pages/p4_results.py", title="Results", icon=":material/monitoring:", url_path="results"),
+        st.Page("pages/p5_compare.py", title="Compare", icon=":material/compare_arrows:", url_path="compare"),
     ],
-    "Data": [st.Page("pages/library.py", title="My scenarios", icon="🗂️", url_path="scenarios")],
+    "Data": [st.Page("pages/library.py", title="My scenarios", icon=":material/folder_open:", url_path="scenarios")],
 }
 nav = st.navigation(pages)
 
 with st.sidebar:
     sc = state.sc()
-    st.markdown(f"**{sc.name}**")
-    if state.ss.is_example:
-        st.caption("🏷️ Example — placeholder values")
-    if state.unsaved():
-        st.caption("● unsaved changes — save in *My scenarios*")
     issues = validate(sc)
     res = state.result()
-    run_issues = [i for i in res.issues if i.where == "results" or i.level == "warning"]
 
     def status(where):
         lv = {i.level for i in issues + res.issues if i.where == where}
-        return "⛔" if "block" in lv else "⚠" if "warning" in lv else "✓"
+        return ("Fix", "danger") if "block" in lv else ("Check", "warning") if "warning" in lv else ("OK", "accent")
 
-    st.markdown(f"{status('setup')} Setup  \n{status('phases')} Phases  \n{status('regimes')} Feed regimes  \n"
-                f"{'⛔' if res.blocked else '⚠' if run_issues else '✓'} Results")
-    st.divider()
-    st.caption(f"🔒 Your inputs never leave this computer.  \nModel {MODEL_VERSION} · see MODEL.md")
+    run = ("Stopped", "danger") if res.blocked else ("Check", "warning") if any(
+        i.level == "warning" for i in res.issues) else ("OK", "accent")
+    st.html(f'<div class="bp-panel-title">{theme.esc(sc.name)}</div>')
+    flags = []
+    if state.ss.is_example:
+        flags.append(("Placeholder values", "", ""))
+    if state.unsaved():
+        flags.append(("Unsaved", "", "warning"))
+    if flags:
+        theme.chips(flags)
+    rows = [("Setup", *status("setup")), ("Phases", *status("phases")), ("Feed regimes", *status("regimes")),
+            ("Results", *run)]
+    st.html('<div class="bp-issues">' + "".join(
+        f'<div class="bp-issue" style="grid-template-columns:1fr auto;padding:6px 10px"><div>{n}</div>'
+        f'<span class="bp-chip {tone}" style="padding:1px 8px">{lbl}</span></div>' for n, lbl, tone in rows) + "</div>")
+    st.caption(f"Runs in your browser. Inputs never leave it.  \nModel {MODEL_VERSION}")
 
 nav.run()
 state.autosave()

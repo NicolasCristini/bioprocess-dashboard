@@ -2,21 +2,23 @@ import streamlit as st
 
 from bioprocess.defaults import example_scenario
 from bioprocess.io.scenario_file import from_text
-from ui import state
+from bioprocess.summary import key_numbers
+from ui import state, theme
+from ui.widgets import PHASE_COLOR, sci
 
-st.title("Bioprocess Phase Planner")
-st.markdown("Predicts **cell density, metabolites, working volume, medium use and biomass**, hour by hour, "
-            "for a process built from up to six phases: **batch**, **fed-batch** and **continuous** "
-            "(bleed & feed). Compare scenarios side by side.")
+theme.top("Bioprocess Phase Planner",
+          "Predict cell density, metabolites, working volume, medium use and biomass, hour by hour, "
+          "for a process built from batch, fed-batch and continuous phases.")
 
-c1, c2, c3 = st.columns(3)
-if c1.button("Start from the example plan", icon="🧪", width="stretch"):
-    state.replace(example_scenario(), example=True)
-    st.switch_page("pages/p1_setup.py")
-if c2.button("Open my scenarios", icon="🗂️", width="stretch"):
-    st.switch_page("pages/library.py")
-up = c3.file_uploader("Open a scenario file (.yaml / .json)", type=["yaml", "yml", "json"],
-                      label_visibility="collapsed")
+left, right = st.columns([3, 2], gap="large", vertical_alignment="center")
+with left, st.container(horizontal=True, gap="small"):
+    if st.button("Start from example", icon=":material/play_arrow:", type="primary"):
+        state.replace(example_scenario(), example=True)
+        st.switch_page("pages/p1_setup.py")
+    if st.button("Open my scenarios", icon=":material/folder_open:"):
+        st.switch_page("pages/library.py")
+up = right.file_uploader("Open a scenario file (.yaml / .json)", type=["yaml", "yml", "json"],
+                         label_visibility="collapsed")
 if up is not None and st.session_state.get("_home_up") != up.file_id:
     st.session_state._home_up = up.file_id
     try:
@@ -25,20 +27,38 @@ if up is not None and st.session_state.get("_home_up") != up.file_id:
     except ValueError as e:
         st.error(str(e))
 
-st.subheader("How to use it — 5 steps")
-st.markdown("""
-1. **Setup**: vessel, working-volume window (V_min / V_max), seeding density and the metabolite table.
-2. **Phases**: add up to 6 phases. Each needs a duration and a specific growth rate **µ**.
-   Fed-batch phases pick a feed regime; continuous phases set the bleed (and feed, = bleed by default).
-3. **Feed regimes**: the daily feed volume (% of the initial working volume) for fed-batch phases,
-   fed as a constant flow over the day.
-4. **Results**: key numbers, checks, charts and an hour-by-hour playback.
-5. **Compare**: overlay saved scenarios and see the differences.
+steps = [
+    ("Setup", "Vessel, working-volume window, seeding density and the metabolite table."),
+    ("Phases", "Up to six phases, each with a duration and a specific growth rate µ."),
+    ("Feed regimes", "Daily fed-batch feed as % of the initial volume, fed as a constant flow."),
+    ("Results", "Key numbers, checks, charts and an hour-by-hour playback."),
+    ("Compare", "Overlay saved scenarios and read the differences against a baseline."),
+]
+st.html('<div class="bp-steps">' + "".join(
+    f'<div class="bp-step"><div class="n">{i}</div><div class="t">{theme.esc(t)}</div>'
+    f'<div class="d">{theme.esc(d)}</div></div>' for i, (t, d) in enumerate(steps, 1)) + "</div>")
 
-Status marks in the sidebar: ✓ fine · ⚠ check this · ⛔ must be fixed before results are shown.
-""")
+sc, res = state.sc(), state.result()
+with st.container(border=True):
+    h1, h2 = st.columns([4, 1], vertical_alignment="center")
+    h1.html(f'<div class="bp-panel-title">Current scenario</div><div class="bp-panel-sub">{theme.esc(sc.name)}</div>')
+    if h2.button("Open results", icon=":material/monitoring:", width="stretch"):
+        st.switch_page("pages/p4_results.py")
+    if sc.phases:
+        st.html('<div class="bp-timeline">' + "".join(
+            f'<div style="flex:{p.days};background:{PHASE_COLOR[p.type]}">{i}. {p.type}, {p.days} d</div>'
+            for i, p in enumerate(sc.phases, 1)) + f'</div><div class="bp-axis"><span>day 0</span>'
+            f'<span>day {sc.total_days}</span></div>')
+    if res.ok:
+        k = key_numbers(res)
+        theme.kpis([dict(label="Total fresh medium", value=f"{k['fresh_medium_L']:.3f}", unit="L", lead=True),
+                    dict(label="Total wet biomass", value=f"{k['wb_total_g']:.1f}", unit="g"),
+                    dict(label="Final VCC", value=sci(k["final_vcc"]), unit="/mL"),
+                    dict(label="Checks to review", value=str(sum(i.level == "warning" for i in res.issues)), unit="")])
+    else:
+        theme.issues([i for i in res.issues if i.level == "block"])
 
-with st.expander("Model assumptions (MODEL.md §4)"):
+with st.expander("Model assumptions", icon=":material/info:"):
     st.markdown("""
 - Growth follows the **µ you enter per phase**; it does not respond to metabolite levels.
 - Specific rates **q** are constant; viability is 100 %; cell death is not modelled.
