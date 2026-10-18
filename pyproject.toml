@@ -3,17 +3,18 @@ name = "bioprocess-dashboard"
 version = "0.1.0"
 description = "Browser-based planner for batch, fed-batch and continuous cell-culture processes"
 requires-python = ">=3.13,<3.14"   # matches the Pyodide/Python version stlite ships
+# pinned to the versions the in-browser runtime ships (web/vendor.json), so both modes behave the same
 dependencies = [
-    "numpy",
-    "pandas",
-    "plotly",
-    "pydantic>=2",
-    "pyyaml",
-    "openpyxl",
+    "numpy==2.2.5",
+    "pandas==2.3.3",
+    "plotly==7.1.0",
+    "pydantic==2.12.5",
+    "pyyaml==6.0.2",
+    "openpyxl==3.1.5",
 ]
 
 [project.optional-dependencies]
-dev = ["pytest", "streamlit"]
+dev = ["pytest", "streamlit==1.65.0"]
 
 [build-system]
 requires = ["hatchling"]
