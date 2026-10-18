@@ -49,3 +49,15 @@ def test_exports():
     assert len(d) == 15 and d.day.tolist() == list(range(15))
     assert d.fb_feed_L.sum() == pytest.approx(0.06)
     assert results_xlsx(r)[:2] == b"PK"
+
+
+def test_autosave_round_trip(tmp_path):
+    st = ScenarioStore(tmp_path)
+    assert st.restore() is None
+    sc = example_scenario("suggested")
+    st.autosave(sc, {"is_example": False, "saved_json": None})
+    got, meta = st.restore()
+    assert got == sc and meta["is_example"] is False
+    assert st.list() == []          # the working copy is not a saved scenario
+    (tmp_path / st.AUTOSAVE).write_text("{broken")
+    assert st.restore() is None

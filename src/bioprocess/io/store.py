@@ -60,6 +60,25 @@ class ScenarioStore:
             f.unlink()
         return len(files)
 
+    # ---- working copy: survives reloads and new sessions (not listed with the saved scenarios)
+    AUTOSAVE = ".autosave.json"
+
+    def autosave(self, sc: Scenario, meta: dict) -> None:
+        import json
+        from .scenario_file import to_dict
+        (self.root / self.AUTOSAVE).write_text(json.dumps({"meta": meta, "scenario": to_dict(sc)}), encoding="utf-8")
+
+    def restore(self) -> tuple[Scenario, dict] | None:
+        import json
+        f = self.root / self.AUTOSAVE
+        if not f.exists():
+            return None
+        try:
+            d = json.loads(f.read_text(encoding="utf-8"))
+            return Scenario.model_validate(d["scenario"]), d.get("meta", {})
+        except Exception:  # noqa: BLE001 - a corrupt working copy is simply ignored
+            return None
+
     def export_all(self) -> bytes:
         """All scenarios as one zip (backup / move to another browser)."""
         import io
