@@ -16,12 +16,14 @@ Feeding = Literal["flow", "bolus"]
 
 @dataclass
 class SimResult:
+    """Output of any model version: the same table columns and plans, so summaries, charts and Compare work for all."""
     scenario: Scenario
     steps_per_day: int
     table: pd.DataFrame                       # one row per step, row 0 = t 0
     plans: list[PhasePlan]
     issues: list[Issue] = field(default_factory=list)
     stopped_at_h: float | None = None         # set when the volume window blocked the run
+    model_id: str = "v1-baseline"
 
     @property
     def ok(self) -> bool:
@@ -53,7 +55,7 @@ def simulate(sc: Scenario, steps_per_day: int | None = None, fedbatch_feeding: F
     conc = [m.c_batch if m.modelled else nan for m in mets]
     pending_bolus = 0.0                       # bolus mode: added at end of previous step, mixed this step
     cum = dict(fresh=v0, fb=0.0, perf=0.0, harvest=0.0, bleed=0.0, cells=0.0)
-    rows = [_row(0, 0, plans[0], 0.0, x, x, 0, v, 0, 0, 0, 0, cum, mets, conc, k_wb)]
+    rows = [table_row(0, 0, plans[0], 0.0, x, x, 0, v, 0, 0, 0, 0, cum, mets, conc, k_wb)]
     stopped = None
     total_steps = plans[-1].end_day * n_day
     pi = 0
@@ -104,7 +106,7 @@ def simulate(sc: Scenario, steps_per_day: int | None = None, fedbatch_feeding: F
         cum["cells"] += cells_bled
         x, v, conc = x_new, v_new, new_conc
         pending_bolus = fb if fedbatch_feeding == "bolus" else 0.0
-        rows.append(_row(n, t, p, tau, x, x_avg, fb, v, perf, bleed, harvest, cells_bled, cum, mets, conc, k_wb))
+        rows.append(table_row(n, t, p, tau, x, x_avg, fb, v, perf, bleed, harvest, cells_bled, cum, mets, conc, k_wb))
         if v > s.v_max_L + EPS or v < s.v_min_L - EPS:
             stopped = t * 24
             side = "above V_max" if v > s.v_max_L else "below V_min"
@@ -114,11 +116,11 @@ def simulate(sc: Scenario, steps_per_day: int | None = None, fedbatch_feeding: F
 
     table = pd.DataFrame(rows)
     result = SimResult(sc, n_day, table, plans, issues, stopped)
-    result.issues.extend(_run_checks(result))
+    result.issues.extend(run_checks(result))
     return result
 
 
-def _row(n, t, p: PhasePlan, tau, x, x_avg, fb, v, perf, bleed, harvest, cells_bled, cum, mets, conc, k_wb):
+def table_row(n, t, p: PhasePlan, tau, x, x_avg, fb, v, perf, bleed, harvest, cells_bled, cum, mets, conc, k_wb):
     row = {
         "step": n, "t_h": t * 24, "t_d": t, "day": math.ceil(t - EPS) if n else 0,
         "phase": p.index, "type": p.type, "tau_d": tau,
@@ -136,7 +138,7 @@ def _row(n, t, p: PhasePlan, tau, x, x_avg, fb, v, perf, bleed, harvest, cells_b
     return row
 
 
-def _run_checks(r: SimResult) -> list[Issue]:
+def run_checks(r: SimResult) -> list[Issue]:
     out: list[Issue] = []
     tb, sc = r.table, r.scenario
     for p in r.plans:

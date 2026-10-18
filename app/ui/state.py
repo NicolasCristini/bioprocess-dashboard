@@ -3,11 +3,12 @@ from __future__ import annotations
 
 import streamlit as st
 
+from bioprocess import registry
 from bioprocess.defaults import example_scenario
 from bioprocess.io.scenario_file import to_json
 from bioprocess.io.store import IN_BROWSER, ScenarioStore
 from bioprocess.models import Scenario
-from bioprocess.simulate import SimResult, simulate
+from bioprocess.simulate import SimResult
 
 ss = st.session_state
 
@@ -19,18 +20,22 @@ def init() -> None:
             ss.scenario, meta = restored
             ss.saved_json = meta.get("saved_json")
             ss.is_example = meta.get("is_example", False)
+            if "model_id" not in ss:
+                ss.model_id = meta.get("model_id", registry.DEFAULT_ID)
         else:
             ss.scenario = example_scenario()
             ss.saved_json = to_json(ss.scenario)   # last saved/loaded version, for "unsaved changes"
             ss.is_example = True
+            if "model_id" not in ss:
+                ss.model_id = registry.DEFAULT_ID
         ss.rev = 0
 
 
 def autosave() -> None:
     """Persist the working copy when it changed (called once per run by the router)."""
-    j = to_json(sc())
+    j = to_json(sc()) + model().id
     if ss.get("_autosaved") != j:
-        store().autosave(sc(), {"saved_json": ss.saved_json, "is_example": ss.is_example})
+        store().autosave(sc(), {"saved_json": ss.saved_json, "is_example": ss.is_example, "model_id": model().id})
         ss._autosaved = j
 
 
@@ -60,13 +65,24 @@ def unsaved() -> bool:
     return ss.saved_json != to_json(sc())
 
 
-def result() -> SimResult:
-    """Simulate the active scenario, re-running only when it changed."""
-    j = to_json(sc())
-    if ss.get("_res_key") != j:
-        ss._res = simulate(sc())
-        ss._res_key = j
-    return ss._res
+def model() -> registry.ModelCard:
+    """The model version selected in the sidebar (falls back to the default if it disappeared)."""
+    init()
+    card = registry.get(ss.get("model_id"))
+    ss.model_id = card.id
+    return card
+
+
+def result(model_id: str | None = None) -> SimResult:
+    """Simulate the active scenario with the selected (or given) model, re-running only when something changed."""
+    card = registry.get(model_id) if model_id else model()
+    key = f"{card.id}:{to_json(sc())}"
+    cache = ss.setdefault("_results", {})
+    if key not in cache:
+        if len(cache) > 8:
+            cache.clear()
+        cache[key] = card.simulate(sc())
+    return cache[key]
 
 
 def store() -> ScenarioStore:

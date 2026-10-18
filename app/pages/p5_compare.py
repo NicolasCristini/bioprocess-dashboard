@@ -1,34 +1,51 @@
 import plotly.graph_objects as go
 import streamlit as st
 
+from bioprocess import registry
 from bioprocess.compare import key_numbers_table, long_series
-from bioprocess.simulate import simulate
 from ui import charts, state, theme
 from ui.charts import SCEN_COLORS, _layout
 
-theme.top("Compare", "Overlay the current scenario and saved ones. Runs that stopped early are listed but not drawn.")
+card = state.model()
+theme.top("Compare", "Overlay scenarios under one model, or one scenario under several models. Runs that stopped "
+                     "early are listed but not drawn.", [("Model", card.label, "")])
 
-store = state.store()
-saved = [d for d in store.list() if d["ok"]]
-CURRENT = f"Current: {state.sc().name}"
-options = [CURRENT] + [d["name"] for d in saved]
-pick = st.multiselect("Scenarios (2 to 6)", options, default=options[: min(3, len(options))], max_selections=6)
-if len(pick) < 2:
-    st.info("Pick at least two scenarios. Save variants in **My scenarios** (for example *Save as copy* after a change).",
-            icon=":material/info:")
-    st.stop()
-
+if "compare_mode" not in st.session_state:
+    st.session_state.compare_mode = "Scenarios"
+mode = st.segmented_control("Compare", ["Scenarios", "Models"], key="compare_mode",
+                            label_visibility="collapsed") or "Scenarios"
 results = {}
-for name in pick:
-    if name == CURRENT:
-        results["Current"] = state.result()
-    else:
-        f = next(d["file"] for d in saved if d["name"] == name)
-        cache = st.session_state.setdefault("_cmp_cache", {})
-        mtime = next(d["modified"] for d in saved if d["name"] == name)
-        if cache.get(f, (None,))[0] != mtime:
-            cache[f] = (mtime, simulate(store.load(f)))
-        results[name] = cache[f][1]
+if mode == "Models":
+    cards = registry.discover()
+    pick = st.multiselect(f"Models for the current scenario ({state.sc().name})", list(cards),
+                          default=list(cards)[:4], format_func=lambda i: cards[i].label, max_selections=6)
+    if len(pick) < 2:
+        st.info("Pick at least two models.", icon=":material/info:")
+        st.stop()
+    for mid in pick:
+        results[cards[mid].label] = state.result(mid)
+else:
+    store = state.store()
+    saved = [d for d in store.list() if d["ok"]]
+    CURRENT = f"Current: {state.sc().name}"
+    options = [CURRENT] + [d["name"] for d in saved]
+    pick = st.multiselect(f"Scenarios (2 to 6), run with {card.label}", options,
+                          default=options[: min(3, len(options))], max_selections=6)
+    if len(pick) < 2:
+        st.info("Pick at least two scenarios. Save variants in **My scenarios** (for example *Save as copy* after a "
+                "change).", icon=":material/info:")
+        st.stop()
+    for name in pick:
+        if name == CURRENT:
+            results["Current"] = state.result()
+        else:
+            f = next(d["file"] for d in saved if d["name"] == name)
+            mtime = next(d["modified"] for d in saved if d["name"] == name)
+            cache = st.session_state.setdefault("_cmp_cache", {})
+            ck = (card.id, f)
+            if cache.get(ck, (None,))[0] != mtime:
+                cache[ck] = (mtime, card.simulate(store.load(f)))
+            results[name] = cache[ck][1]
 
 for name, r in results.items():
     if not r.ok:
@@ -66,4 +83,4 @@ for j, label in enumerate(chosen):
     if VARS[label] == "vcc":
         fig.update_yaxes(exponentformat="E")
     with cols[j % 2]:
-        charts.show(fig, f"cmp_{VARS[label]}")
+        charts.show(fig, f"cmp_{mode}_{VARS[label]}")

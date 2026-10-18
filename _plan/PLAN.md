@@ -370,3 +370,24 @@ Verified on the live site:
 - a saved scenario survives a full reload.
 
 The first visit takes about a minute (75 MB, once); the browser caches it.
+
+
+---
+
+## 13. Model versions (branch `model-versions`, 2026-10-18)
+
+- **`models/` folder**, one sub-folder per version:
+  - a card (YAML front matter);
+  - a spec (Markdown);
+  - `model.py`.
+- **Discovered by** `bioprocess.registry`.
+- **v1-baseline:** the validated core (MODEL.md).
+- **v2-monod:** Monod growth and uptake limitation, plus optional product inhibition (MODEL2.md). It equals v1.1 when
+  no constant is set (tested to 1e-12).
+- **App:**
+  - a model selector at the bottom of the left panel;
+  - a Model page (card, generated parameter editor, rendered spec, the scenario under every model);
+  - Compare in "Models" mode (one scenario, several models overlaid);
+  - a growth-rate chart when a model reports `mu_eff`.
+- **Model parameters** live in the scenario under `model_params[<id>]`.
+- **Open:** in-app upload of models (see the options in the session summary); Monod open points (MODEL2.md §7).

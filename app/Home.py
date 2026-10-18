@@ -9,7 +9,7 @@ for p in (_here, _here.parent / "src"):          # stlite has no installed packa
 
 import streamlit as st  # noqa: E402
 
-from bioprocess import MODEL_VERSION  # noqa: E402
+from bioprocess import registry  # noqa: E402
 from bioprocess.checks import validate  # noqa: E402
 from ui import state, theme  # noqa: E402
 
@@ -28,6 +28,7 @@ pages = {
         st.Page("pages/p4_results.py", title="Results", icon=":material/monitoring:", url_path="results"),
         st.Page("pages/p5_compare.py", title="Compare", icon=":material/compare_arrows:", url_path="compare"),
     ],
+    "Model": [st.Page("pages/model.py", title="Model", icon=":material/function:", url_path="model")],
     "Data": [st.Page("pages/library.py", title="My scenarios", icon=":material/folder_open:", url_path="scenarios")],
 }
 nav = st.navigation(pages)
@@ -56,7 +57,20 @@ with st.sidebar:
     st.html('<div class="bp-issues">' + "".join(
         f'<div class="bp-issue" style="grid-template-columns:1fr auto;padding:6px 10px"><div>{n}</div>'
         f'<span class="bp-chip {tone}" style="padding:1px 8px">{lbl}</span></div>' for n, lbl, tone in rows) + "</div>")
-    st.caption(f"Runs in your browser. Inputs never leave it.  \nModel {MODEL_VERSION}")
+    # ---- model selector (bottom of the panel): run the same scenario with any model version in models/
+    st.divider()
+    cards = registry.discover()
+    ids = list(cards)
+    current = state.model().id
+    chosen = st.selectbox("Model", ids, index=ids.index(current), format_func=lambda i: cards[i].label,
+                          key="model_select", help="Runs the current scenario with this model version. "
+                                                   "Details and model parameters: Model page.")
+    if chosen != current:
+        state.ss.model_id = chosen
+        st.rerun()
+    card = cards[chosen]
+    theme.chips([(card.status.capitalize(), "", "accent" if card.status == "validated" else "warning")])
+    st.caption(f"Runs in your browser. Inputs never leave it.")
 
 nav.run()
 state.autosave()

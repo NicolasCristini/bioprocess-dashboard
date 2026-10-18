@@ -89,6 +89,9 @@ class Scenario(_Model):
     metabolites: list[Metabolite]
     regimes: list[FeedRegime]
     phases: list[Phase]
+    # parameters of specific model versions, keyed by model id (e.g. {"v2-monod": {"Glucose": {"Ks": 0.5}}}).
+    # Models that do not use them ignore them, so one scenario runs under every model.
+    model_params: dict[str, dict] = Field(default_factory=dict)
 
     def regime(self, name: str) -> FeedRegime | None:
         return next((r for r in self.regimes if r.name == name), None)

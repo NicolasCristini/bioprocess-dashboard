@@ -28,6 +28,7 @@ def test_build_static_site(tmp_path):
     assert "connect-src 'self' blob: data:" in CSP and "https:" not in CSP  # nothing may leave the browser
     files = json.loads((out / "manifest.json").read_text())
     assert "app/Home.py" in files and "src/bioprocess/simulate.py" in files
+    assert {"models/v1-baseline/model.py", "models/v2-monod/MODEL2.md", "MODEL.md"} <= set(files)
     assert all((out / f).is_file() for f in files if f != ".streamlit/config.toml")
     import re
     stl = re.search(r"streamlitConfig: (\{.*?\}),", page).group(1)

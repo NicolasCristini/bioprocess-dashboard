@@ -10,8 +10,10 @@ sc = state.sc()
 r = state.result()
 n_block = sum(i.level == "block" for i in r.issues)
 n_warn = sum(i.level == "warning" for i in r.issues)
+card = state.model()
 theme.top("Results", sc.name,
-          [("Resolution", "hourly" if r.steps_per_day == 24 else "daily", ""),
+          [("Model", card.label, "" if card.status == "validated" else "warning"),
+           ("Resolution", "hourly" if r.steps_per_day == 24 else "daily", ""),
            ("Blocking", str(n_block), "danger") if n_block else ("Run", "complete", "accent"),
            ("Checks", str(n_warn), "warning" if n_warn else "")])
 
@@ -62,7 +64,8 @@ with tab_charts:
     fb = fedbatch_volume_per_day(r)
     figs = [("vcc", charts.vcc(r, log, t_d)), ("metabolites", charts.metabolites(r, t_d)),
             ("volume", charts.volume(r, t_d)), ("cumulative", charts.cumulative(r, t_d)),
-            ("biomass", charts.biomass(r, t_d))] + ([("fedbatch", charts.fedbatch_bars(fb))] if len(fb) else [])
+            ("biomass", charts.biomass(r, t_d))] + ([("fedbatch", charts.fedbatch_bars(fb))] if len(fb) else []) \
+        + ([("mu_eff", charts.growth_rate(r, t_d))] if "mu_eff" in r.table else [])
     for i in range(0, len(figs), 2):
         cols = st.columns(2, gap="medium")
         for col, (key, fig) in zip(cols, figs[i:i + 2]):

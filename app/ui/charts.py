@@ -108,6 +108,19 @@ def biomass(r: SimResult, t_d=None) -> go.Figure:
     return _layout(fig, "Wet biomass", "g")
 
 
+def growth_rate(r: SimResult, t_d=None) -> go.Figure:
+    """Effective vs maximum growth rate (models that report mu_eff, e.g. v2 Monod)."""
+    tb = r.table
+    fig = go.Figure(go.Scatter(x=tb.t_d, y=tb.mu_eff, name="µ effective", line=dict(color=ACCENT, width=2.4),
+                               hovertemplate="%{y:.4f} 1/day"))
+    mu_max = [next(p.mu for p in r.plans if p.index == ph) for ph in tb.phase]
+    fig.add_scatter(x=tb.t_d, y=mu_max, name="µmax (phase input)", line=dict(color=TEXT_MUTED, dash="dash", width=1.5),
+                    hovertemplate="%{y:.4f} 1/day")
+    phase_bands(fig, r)
+    marker(fig, t_d)
+    return _layout(fig, "Growth rate", "1/day")
+
+
 def fedbatch_bars(fb_df) -> go.Figure:
     fig = go.Figure(go.Bar(x=fb_df["Day"], y=fb_df["Volume added (L)"], marker_color=PHASE_COLOR["Fed-batch"], marker_cornerradius=6,
                            hovertemplate="day %{x}: %{y:.3f} L"))

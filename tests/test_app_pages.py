@@ -80,3 +80,24 @@ def test_library_save_button(tmp_path, monkeypatch):
     save.click().run()
     assert not at.exception
     assert [p.name for p in lib.glob("*.yaml")] == ["Example-plan-placeholder-values.yaml"]
+
+
+def test_compare_models_mode(tmp_path, monkeypatch):
+    monkeypatch.setattr("bioprocess.io.store.default_dir", lambda: tmp_path / "lib")
+    at = AppTest.from_file(str(APP / "pages" / "p5_compare.py"), default_timeout=60)
+    at.session_state["compare_mode"] = "Models"
+    at.run()
+    assert not at.exception, [e.message for e in at.exception]
+    df = at.dataframe[0].value
+    assert any("Baseline" in c for c in df.columns) and any("Monod" in c for c in df.columns)
+
+
+def test_model_selection_changes_results(tmp_path, monkeypatch):
+    monkeypatch.setattr("bioprocess.io.store.default_dir", lambda: tmp_path / "lib")
+    at = AppTest.from_file(str(APP / "pages" / "p4_results.py"), default_timeout=60)
+    at.session_state["model_id"] = "v2-monod"
+    at.run()
+    assert not at.exception, [e.message for e in at.exception]
+    page = " ".join(str(h.proto.body) for h in at.get("html"))
+    assert "Monod limitation (v2.0)" in page
+    assert "Total fresh medium</div><div class=\"v\">6.644<small>L" in page

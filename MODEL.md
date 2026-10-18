@@ -1,5 +1,9 @@
 # MODEL.md: Bioprocess Phase Planner model
 
+> **Model v1.1 (`models/v1-baseline`).** This is the spec of the baseline model. Other model versions live in
+> [`models/`](models/README.md). The Monod version is [`models/v2-monod/MODEL2.md`](models/v2-monod/MODEL2.md).
+> Pick a model at the bottom of the app's left panel.
+
 The single reference for every model parameter, equation and assumption used by the dashboard.
 Change the model here first, then in `src/bioprocess/`, and update the reference tests.
 
@@ -46,16 +50,16 @@ Defaults:
 |---|---|---|---|---|---|---|
 | Glucose | consumed | 7.9 | 5 | 25 | 250 | 25 |
 | Lactate | produced | 8.6 | 20 | 0 | 0 | 0 |
-| Glutamine | consumed | — | 0.5 | — | — | — |
-| Glutamate | consumed | — | 0.5 | — | — | — |
-| Ammonia | produced | — | 5 | — | 0 | 0 |
+| Glutamine | consumed | - | 0.5 | - | - | - |
+| Glutamate | consumed | - | 0.5 | - | - | - |
+| Ammonia | produced | - | 5 | - | 0 | 0 |
 
-### 1.3 Phases (1–6 phases; total duration ≤ 120 days)
+### 1.3 Phases (1 to 6 phases; total duration ≤ 120 days)
 
 | Type | Inputs | Unit |
 |---|---|---|
 | Batch | duration `T` (whole days), specific growth rate `µ` | d, 1/day |
-| Fed-batch | `T`, `µ`, feed regime | d, 1/day, — |
+| Fed-batch | `T`, `µ`, feed regime | d, 1/day, - |
 | Continuous | `T`, `µ`, bleed rate `b`, perfusion (feed) rate `D` | d, 1/day, VVD, VVD |
 
 - `µ` is required in every phase. The UI pre-fills it with the previous phase's `µ`. `µ = 0` holds VCC constant in batch and fed-batch phases.
@@ -63,11 +67,11 @@ Defaults:
 
 ### 1.4 Feed regimes (fed-batch)
 
-For each phase day `d = 1…30` and each regime A–D: the **feed volume added on that day, as % of the initial working volume `V0`**. It is delivered as a constant flow over the whole day (§2.2).
+For each phase day `d = 1…30` and each regime A to D: the **feed volume added on that day, as % of the initial working volume `V0`**. It is delivered as a constant flow over the whole day (§2.2).
 
 | Regime | Default |
 |---|---|
-| A | 3 %/day on days 1–2 |
+| A | 3 %/day on days 1-2 |
 | B | 2 %/day every day |
 | C | 5 % on every 2nd day |
 | D | custom (empty) |
@@ -147,7 +151,7 @@ The volumetric rate is `r_n = sign · q · 24E-8 · X̄_n` in mM/day. This comes
 
 ### 2.6 Sheet-parity mode (internal, for tests only)
 
-`simulate(..., fedbatch_feeding="bolus")` replaces the §2.2–2.3 fed-batch rows with the spreadsheet's rule:
+`simulate(..., fedbatch_feeding="bolus")` replaces the §2.2 and §2.3 fed-batch rows with the spreadsheet's rule:
 - the day-`d` volume is added as one bolus at the end of phase day `d`;
 - it is mixed in at the next step: `C_mix = (C_{n-1}·(V_{n-1} − F_{n-1}) + C_fb·F_{n-1}) / V_{n-1}`.
 

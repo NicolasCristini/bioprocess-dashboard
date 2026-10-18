@@ -7,7 +7,10 @@ Pyodide), published as a **static site with a shareable link**
 inputs and saved scenarios stay in their own browser.
 
 ## Read first
-- `MODEL.md`: the model spec (parameters, equations, checks, assumptions, reference numbers). Code follows it.
+- `MODEL.md`: the v1.1 model spec (parameters, equations, checks, assumptions, reference numbers). Code follows it.
+- `models/`: model versions (v1-baseline, v2-monod, ...). See `models/README.md` for the card / spec / `model.py`
+  contract. `src/bioprocess/registry.py` discovers them. A new version must reduce to its parent and have pinned
+  reference values (`tests/test_models.py`).
 - `_plan/PLAN.md`: the build plan and milestones. `_plan/M0_SPIKE.md`: runtime findings.
 
 ## Non-negotiable rules
@@ -31,6 +34,8 @@ inputs and saved scenarios stay in their own browser.
 - `web/`: the in-browser shell. `web/vendor.json` pins stlite, Pyodide and the wheels.
   `web/vendor/` is fetched by `scripts/vendor_runtime.py` and not committed. `web/spike/` is the runtime health check.
 - `tests/`: pytest.
+- Model selection: `app/ui/state.py::model()` and `result(model_id)` (results cached per model + scenario). The selector is
+  at the bottom of the sidebar (`app/Home.py`), the Model page is `app/pages/model.py`, and Compare has a "Models" mode.
 - **Design system:** `DESIGN.md` (spec), `app/ui/tokens.py` (the values; the only place colours, fonts and radii
   live), `app/ui/theme.py` (CSS layer, Plotly template, HTML components: `top`, `kpis`, `chips`, `issues`).
   After editing tokens, run `python3 scripts/sync_theme.py` (a test fails otherwise). No emoji or em-dashes in UI copy;
@@ -52,7 +57,7 @@ uv run streamlit run app/Home.py --server.address 127.0.0.1   # native mode (dev
 - PyPI wheels are pre-installed through stlite `archives` (`format: "wheel"`), not as URL
   requirements: micropip otherwise races to PyPI.
 - A full page load boots Pyodide (~5 s with a warm cache). Keep heavy imports (openpyxl) lazy.
-- `scripts/build_site.py` copies `app/` and `src/bioprocess/`, writes `manifest.json`, fills the `web/index.html`
+- `scripts/build_site.py` copies `app/`, `src/bioprocess/`, `models/` (`.py` and `.md`) and the root `MODEL.md`, writes `manifest.json`, fills the `web/index.html`
   template (base path + CSP) into `index.html` and `404.html`, and copies the runtime. `scripts/serve.py` is a plain
   static preview: it adds no headers or logic.
 - Every URL in the page shell must stay relative to `<base href>`: the site runs under a sub-path on GitHub Pages.

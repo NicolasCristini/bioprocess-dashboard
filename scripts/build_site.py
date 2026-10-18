@@ -20,7 +20,7 @@ from pathlib import Path
 
 ROOT = Path(__file__).resolve().parent.parent
 WEB = ROOT / "web"
-SOURCES = {"app": ROOT / "app", "src/bioprocess": ROOT / "src" / "bioprocess"}
+SOURCES = {"app": ROOT / "app", "src/bioprocess": ROOT / "src" / "bioprocess", "models": ROOT / "models"}
 
 # Only this origin. 'data:' scripts: stlite's worker is an inline data: script (not a network source).
 CSP = "; ".join([
@@ -62,7 +62,7 @@ def build(base: str = "/", out: Path = ROOT / "dist") -> Path:
 
     files = []
     for prefix, src in SOURCES.items():
-        for p in sorted(src.rglob("*.py")):
+        for p in sorted([*src.rglob("*.py"), *(src.rglob("*.md") if prefix == "models" else [])]):
             if "__pycache__" in p.parts:
                 continue
             rel = f"{prefix}/{p.relative_to(src).as_posix()}"
@@ -74,6 +74,10 @@ def build(base: str = "/", out: Path = ROOT / "dist") -> Path:
     (out / "theme").mkdir()
     (out / "theme" / "config.toml").write_text(theme_toml())
     files.append(".streamlit/config.toml")
+    # specs referenced by model cards outside models/ (v1-baseline points to the root MODEL.md)
+    for doc in ("MODEL.md",):
+        shutil.copy2(ROOT / doc, out / doc)
+        files.append(doc)
     (out / "manifest.json").write_text(json.dumps(files, indent=1))
 
     page = (WEB / "index.html").read_text(encoding="utf-8").replace("{{CSP}}", CSP).replace("{{BASE}}", base)
