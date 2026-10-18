@@ -358,3 +358,15 @@ visible to anyone with the link. Visitors' data is not: it never leaves their br
 
 **Storage caveat for users:** browser storage is per browser and per site. Another device or browser does not see the
 scenarios; use *Export all* / import to move them. Clearing site data deletes them.
+
+**Chosen (2026-10-18): option 1.** The repository is public. GitHub Pages builds from Actions, and `DEPLOY_PAGES` = `true`.
+Every push to `main` now runs the tests and redeploys. Live link: https://nicolascristini.github.io/bioprocess-dashboard/
+
+Verified on the live site:
+- the runtime loads from the site itself;
+- nothing comes from PyPI;
+- the worker's outbound fetch is blocked by the CSP;
+- Results show the reference numbers (6.800 L, 93.6 g) with 7 charts;
+- a saved scenario survives a full reload.
+
+The first visit takes about a minute (75 MB, once); the browser caches it.

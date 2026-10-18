@@ -1,5 +1,7 @@
 # Bioprocess Phase Planner
 
+**Open the app:** https://nicolascristini.github.io/bioprocess-dashboard/
+
 A planner for cell-culture processes built from phases (batch, fed-batch, continuous bleed & feed).
 It predicts cell density, metabolites, working volume, medium use and biomass, **hour by hour**, and
 compares scenarios side by side.

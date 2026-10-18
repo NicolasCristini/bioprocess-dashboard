@@ -2,7 +2,8 @@
 
 A personal project: a browser-based planner for batch → fed-batch → continuous (bleed & feed)
 cell-culture processes. Python model + Streamlit UI that runs **inside the browser** (stlite /
-Pyodide), published as a **static site with a shareable link**. There is no server logic: each visitor's
+Pyodide), published as a **static site with a shareable link**
+(https://nicolascristini.github.io/bioprocess-dashboard/, public repo, redeployed on every push to `main`). There is no server logic: each visitor's
 inputs and saved scenarios stay in their own browser.
 
 ## Read first
