@@ -14,6 +14,10 @@ st.title("2 · Phases")
 st.caption(f"Up to {MAX_PHASES} phases, {MAX_DAYS} days in total. Every phase needs a duration and a specific "
            "growth rate µ; the end cell density follows from them.")
 
+if notes := st.session_state.pop("_import_notes", None):
+    st.info("**Imported from the spreadsheet planner.** Check the converted values, then save it in *My scenarios*.\n\n"
+            + "\n".join(f"- {n}" for n in notes))
+
 issues = validate(sc)
 try:
     plans = plan_phases(sc)
@@ -61,7 +65,7 @@ for i, ph in enumerate(sc.phases):
                   help="Move down")
         h4.button("✕", key=state.key(f"rm{i}"), on_click=remove, args=(i,), help="Remove phase")
 
-        c1, c2, c3, c4 = st.columns(4)
+        c1, c2, c3, c4 = st.columns([1.1, 1.1, 1.3, 1.2])
         c1.selectbox("Type", ["Batch", "Fed-batch", "Continuous"], index=["Batch", "Fed-batch", "Continuous"].index(ph.type),
                      key=state.key(f"type{i}"), on_change=retype, args=(i,))
         max_days = REGIME_DAYS if ph.type == "Fed-batch" else MAX_DAYS

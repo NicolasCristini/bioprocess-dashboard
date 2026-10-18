@@ -35,7 +35,8 @@
         archives: wheels.map((w) => ({ url: local(`vendor/pypi/${w}`), format: "wheel" })),
         requirements: ["numpy", "pandas", "pydantic", "pyyaml", "plotly", "openpyxl"],
         idbfsMountpoints: ["/mnt"],
-        streamlitConfig: { "browser.gatherUsageStats": false, "client.toolbarMode": "minimal" },
+        streamlitConfig: { "browser.gatherUsageStats": false, "client.toolbarMode": "minimal",
+                           "theme.primaryColor": "#2f7ed8" },
       },
       document.getElementById("root"),
     );

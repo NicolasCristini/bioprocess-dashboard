@@ -13,7 +13,7 @@ def key_numbers_table(results: dict[str, SimResult], baseline: str | None = None
     df = pd.DataFrame(data)
     if df.empty:
         return df
-    df.index = [f"{KEY_NUMBERS[k][0]} ({KEY_NUMBERS[k][1]})" for k in df.index]
+    df.index = pd.Index([f"{KEY_NUMBERS[k][0]} ({KEY_NUMBERS[k][1]})" for k in df.index], name="Key number")
     if baseline in df:
         for col in [c for c in data if c != baseline]:
             base = df[baseline].where(df[baseline] != 0)

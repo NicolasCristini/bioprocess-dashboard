@@ -19,8 +19,12 @@ Pyodide), served from localhost only.
 - A model change goes into `MODEL.md` first, then code, then the reference tests.
 
 ## Layout
-- `src/bioprocess/`: pure model package (M1).
-- `app/`: Streamlit pages; they run both in stlite and natively.
+- `src/bioprocess/`: pure model package.
+  - `models` (pydantic inputs), `suggest` (phase plan + suggestions), `simulate` (time stepping), `checks`, `summary`, `compare`;
+  - `io/` (YAML, scenario store + autosave, CSV/Excel export, spreadsheet `.xlsx` import);
+  - `defaults` (placeholder example).
+- `app/`: Streamlit. `Home.py` is the router and sidebar. Pages live in `app/pages/`, and `app/ui/` holds state, charts and widgets.
+  Widget keys carry a revision counter (`state.key()`); call `state.replace()` or `state.bump()` after structural changes.
 - `web/`: the in-browser shell. `web/vendor.json` pins stlite, Pyodide and the wheels.
   `web/vendor/` is fetched by `scripts/vendor_runtime.py` and not committed. `web/spike/` is the runtime health check.
 - `tests/`: pytest.
@@ -39,4 +43,9 @@ uv run streamlit run app/Home.py --server.address 127.0.0.1   # native mode (dev
   Pyodide build or a pure-Python wheel. Add new ones to `web/vendor.json` and re-run the vendor script.
 - PyPI wheels are pre-installed through stlite `archives` (`format: "wheel"`), not as URL
   requirements: micropip otherwise races to PyPI.
-- A full page load boots Pyodide (~40 s in the embedded browser). Keep imports lazy.
+- A full page load boots Pyodide (~5 s with a warm cache). Keep heavy imports (openpyxl) lazy.
+- `scripts/serve.py` serves only `web/`, plus read-only `.py` files from `app/` and `src/bioprocess/` and `/manifest.json`.
+  A new Python source file is picked up automatically; any other new asset belongs in `web/`.
+- In stlite, deep links open *Start here* (the URL is reset to `/`). Use sidebar navigation.
+- Tests: `tests/test_against_sheet.py` (day-by-day parity with the original spreadsheet, bolus mode) and
+  `tests/test_reference.py` (MODEL.md §5) are the regression tripwires.

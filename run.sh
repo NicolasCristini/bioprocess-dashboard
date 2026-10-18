@@ -4,5 +4,5 @@ set -euo pipefail
 cd "$(dirname "$0")"
 [ -f web/vendor/pyodide/pyodide.mjs ] || python3 scripts/vendor_runtime.py
 PORT="${PORT:-8765}"
-(sleep 1 && open "http://localhost:$PORT/${1:-}") &
+(sleep 1 && open "http://localhost:$PORT/${1:-}") &   # the app boots in the browser (~5 s)
 exec python3 scripts/serve.py "$PORT"

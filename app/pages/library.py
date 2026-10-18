@@ -52,12 +52,19 @@ st.divider()
 u1, u2 = st.columns(2)
 with u1:
     st.markdown("**Import**")
-    up = st.file_uploader("Scenario (.yaml/.json) or backup (.zip)", type=["yaml", "yml", "json", "zip"])
+    up = st.file_uploader("Scenario (.yaml/.json), backup (.zip) or spreadsheet planner (.xlsx)",
+                          type=["yaml", "yml", "json", "zip", "xlsx"])
     if up is not None and st.session_state.get("_lib_up") != up.file_id:
         st.session_state._lib_up = up.file_id
         try:
             if up.name.endswith(".zip"):
                 st.success(f"Imported {store.import_zip(up.getvalue())} scenarios.")
+            elif up.name.endswith(".xlsx"):
+                from bioprocess.io.sheet_import import from_xlsx
+                imported, notes = from_xlsx(up.getvalue(), name=up.name.rsplit(".", 1)[0])
+                state.replace(imported)
+                st.session_state._import_notes = notes
+                st.switch_page("pages/p2_phases.py")
             else:
                 imported = from_text(up.getvalue().decode("utf-8"))
                 store.save(imported)

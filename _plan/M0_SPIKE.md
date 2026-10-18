@@ -42,3 +42,16 @@ If 40 s is unacceptable, the native fallback starts in ~2 s. Its trade-off: scen
 - `web/vendor.json` (the pinned runtime), `scripts/vendor_runtime.py`, `scripts/serve.py` (CSP server), `run.sh`
 - `web/spike/` (spike page + app; kept as a runtime health check)
 - `CLAUDE.md`, `README.md`
+
+## Update after M2–M7 (2026-10-18)
+
+The full app (7 pages) boots in the built-in browser in **about 5 s** in two later measurements. That held both with
+the pane visible and hidden, with the runtime already cached by the browser. The 40 s above was the spike's first
+measurement, probably with cold caches and/or a throttled hidden pane. Confirm in your own browser.
+
+More findings:
+- Deep links (e.g. `/results`) cannot open a page directly in stlite: its router takes the start path as its base.
+  `web/index.html` resets the URL to `/`, so a deep link opens *Start here*. The native app routes deep links normally.
+- `st.download_button` works under the CSP. Its click path fetches the file through the in-worker kernel. Streamlit
+  also runs a "source URL health check" against `https://stlite.invalid/...`, which the CSP blocks. That logs
+  "Download Button fetch error" in the console but has no effect: `.invalid` never resolves. The policy stays strict.

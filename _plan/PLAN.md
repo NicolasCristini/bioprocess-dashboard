@@ -1,6 +1,6 @@
 # Bioprocess Dashboard: build plan v3
 
-**Status:** v3, approved. **M0 done (2026-10-17):** the stlite spike passed; see [`M0_SPIKE.md`](M0_SPIKE.md). Next: M1, the model and tests.
+**Status:** v3, approved. **M0–M7 done (2026-10-18).** See [`M0_SPIKE.md`](M0_SPIKE.md) for runtime findings, and §11 for the delivery notes.
 **What it is:** a personal project. It is a browser-based planner for batch → fed-batch → continuous (bleed & feed) cell-culture processes, and it replaces an earlier spreadsheet planner. The spreadsheet stays in use separately while the app is under development.
 **Model spec:** [`../MODEL.md`](../MODEL.md) (v1.1) holds every parameter, equation, check and assumption. This plan does not repeat the formulas.
 
@@ -299,3 +299,26 @@ Folded into §0. Point 13 was applied by rewording the plan, so this file no lon
 3. local host only, no shareable link.
 4. For current simplifation let's consider feeding rate instead of feeding bolus. (constant feeding as small flow over the all day). Calculate and show from there the volume added every day.  
 5. If stlite fails, fallback to native Streamlit on localhost only.
+
+
+---
+
+## 11. Delivery notes (2026-10-18)
+
+| Milestone | Delivered |
+|---|---|
+| M0 | Offline stlite runtime, CSP server, spike. |
+| M1 | `bioprocess` package. Day-by-day parity with 4 spreadsheet scenarios at rel 1e-9 (sheet-parity mode). MODEL.md §5 reproduced. CLI `python -m bioprocess`. |
+| M2 | Start here, Setup (V_min/V_max, metabolite editor), Phase builder (µ per phase, feed = bleed lock, suggested feed button, timeline), Feed regimes. |
+| M3 | Results: key numbers, checks, 6 charts with phase bands and an hour marker, the state at a chosen hour, Plotly playback (client-side frames), per-phase / metabolite / time tables, CSV + Excel. |
+| M4 | Scenario library (browser IndexedDB, or a local folder natively), save / save as / open / delete / zip backup, reload-safe autosave, Compare (Δ% vs baseline, overlays, blocked runs left out). |
+| M5 | Excel export; spreadsheet-planner `.xlsx` import (target → µ conversion, suggestion links kept). |
+| M6 | Light design pass (theme colour, layout fixes, tooltips, assumptions panel). The `graphic` agent was not used. |
+| M7 | `run.sh`; in-browser checks: boot, results, save + reload persistence, download under CSP. |
+
+**Tests:** 56, covering the model, parity, invariants, edge cases, I/O, import and headless page tests.
+
+**Known limitations:**
+- In the browser build, deep links open *Start here*.
+- Playback speed has only been checked in the embedded pane, which throttles when hidden.
+- The console shows a harmless "Download Button fetch error" (see M0_SPIKE.md).
