@@ -5,31 +5,35 @@ DESIGN.md describes them for humans; this file is what the code reads. After cha
 reads these tokens directly (scripts/build_site.py).
 """
 
-# ---- neutrals (cool zinc, dark only)
-CANVAS = "#0B0C0E"        # page background
-SURFACE = "#131519"       # cards, sidebar, tiles
-SURFACE_2 = "#1A1D22"     # inputs, table headers, hover
-HAIRLINE = "#262A31"      # borders, grid lines
-HAIRLINE_STRONG = "#363B45"
-TEXT = "#E8EAED"          # primary text (off-white, never #fff)
-TEXT_MUTED = "#A3A9B3"    # secondary text, labels
-TEXT_SUBTLE = "#80868F"   # captions, axis ticks (4.9:1 on SURFACE)
+# ---- neutrals (cool grey, light theme): mid-light grey canvas, light panels, white charts and inputs
+CANVAS = "#D7DBE0"        # page background (mid-light grey)
+SURFACE = "#EEF0F3"       # cards, KPI tiles
+SIDEBAR = "#E4E7EB"       # left panel
+SURFACE_2 = "#FFFFFF"     # inputs, tables, charts (white)
+HAIRLINE = "#C3C8CF"      # borders
+HAIRLINE_STRONG = "#A9AFB8"
+GRID = "#E6E9ED"          # chart grid lines on white
+TEXT = "#15181C"          # primary text (never pure black)
+TEXT_MUTED = "#3F454E"    # secondary text, labels
+TEXT_SUBTLE = "#545B65"   # captions, axis ticks
 
-# ---- the one accent (teal): primary buttons, focus, active nav, key series
-ACCENT = "#3FB8A0"
-ACCENT_HOVER = "#5ACAB3"
-ON_ACCENT = "#06110E"     # text on accent fill (7.8:1)
-ACCENT_SOFT = "rgba(63, 184, 160, 0.12)"
+# ---- the one accent (deep teal): primary buttons, focus, active nav, key series
+ACCENT = "#0F685A"
+ACCENT_HOVER = "#0B544A"
+ON_ACCENT = "#FFFFFF"
+ACCENT_SOFT = "rgba(15, 104, 90, 0.13)"
 
-# ---- data colours (meaning, not decoration)
-PHASE = {"Batch": "#7D8590", "Fed-batch": "#E39A4F", "Continuous": "#6C9BEA"}
-CHART = ["#3FB8A0", "#E39A4F", "#6C9BEA", "#E46F7A", "#D2B555", "#A48BD6", "#7D8590"]
+# ---- data colours (meaning, not decoration), chosen to read on white
+PHASE = {"Batch": "#8E96A0", "Fed-batch": "#E08A35", "Continuous": "#4C86DE"}
+CHART = ["#0F685A", "#D9822B", "#2F6BC7", "#C8414B", "#A8892A", "#7D5BB8", "#6B7280"]
 
 # ---- semantic
-DANGER = "#E5585E"
-WARNING = "#DDA449"
-INFO = "#6C9BEA"
+DANGER = "#B4323A"
+WARNING = "#99600E"
+INFO = "#2F6BC7"
 SUCCESS = ACCENT
+DANGER_SOFT = "rgba(180, 50, 58, 0.12)"
+WARNING_SOFT = "rgba(153, 96, 14, 0.13)"
 
 # ---- type
 FONT = "Geist"
@@ -45,7 +49,7 @@ RADIUS_PILL = "999px"
 def streamlit_theme() -> dict:
     """Theme options in Streamlit's config naming (flat keys without the 'theme.' prefix)."""
     return {
-        "base": "dark",
+        "base": "light",
         "primaryColor": ACCENT,
         "backgroundColor": CANVAS,
         "secondaryBackgroundColor": SURFACE_2,
@@ -63,7 +67,7 @@ def streamlit_theme() -> dict:
         "font": FONT,
         "headingFont": FONT,
         "codeFont": FONT_MONO,
-        "baseFontSize": 14,
+        "baseFontSize": 15,
         "headingFontWeights": [600, 600, 600, 600, 600, 600],
         "metricValueFontWeight": 500,
         "baseRadius": RADIUS_INPUT,
@@ -72,7 +76,7 @@ def streamlit_theme() -> dict:
         "chartCategoricalColors": CHART,
         "fontFaces": [{"family": FONT, "url": FONT_FILES[FONT], "weight": "100 900"},
                       {"family": FONT_MONO, "url": FONT_FILES[FONT_MONO], "weight": "100 900"}],
-        "sidebar.backgroundColor": SURFACE,
+        "sidebar.backgroundColor": SIDEBAR,
         "sidebar.secondaryBackgroundColor": SURFACE_2,
         "sidebar.borderColor": HAIRLINE,
     }

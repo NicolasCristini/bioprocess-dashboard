@@ -57,20 +57,22 @@ with tab_charts:
                  ("VCC", sci(row.vcc), ""), ("Volume", f"{row.volume_L:.3f} L", "")]
                 + [(m, f"{row[m]:.2f} mM", "") for m in r.metabolite_names if m in row and row[m] == row[m]]
                 + [("Fresh medium", f"{row.cum_fresh_L:.3f} L", ""), ("Biomass bled", f"{row.cum_wb_bleed_g:.2f} g", "")])
-    a, b = st.columns(2)
-    a.plotly_chart(charts.vcc(r, log, t_d), width="stretch")
-    b.plotly_chart(charts.metabolites(r, t_d), width="stretch")
-    a.plotly_chart(charts.volume(r, t_d), width="stretch")
-    b.plotly_chart(charts.cumulative(r, t_d), width="stretch")
-    a.plotly_chart(charts.biomass(r, t_d), width="stretch")
+    st.caption("Each chart: camera icon (top right) saves a PNG; Plot SVG, Legend and Data CSV below it. "
+               "Shaded bands mark fed-batch (amber) and continuous (blue) phases.")
     fb = fedbatch_volume_per_day(r)
-    if len(fb):
-        b.plotly_chart(charts.fedbatch_bars(fb), width="stretch")
-    st.caption("Shaded bands mark fed-batch (amber) and continuous (blue) phases.")
+    figs = [("vcc", charts.vcc(r, log, t_d)), ("metabolites", charts.metabolites(r, t_d)),
+            ("volume", charts.volume(r, t_d)), ("cumulative", charts.cumulative(r, t_d)),
+            ("biomass", charts.biomass(r, t_d))] + ([("fedbatch", charts.fedbatch_bars(fb))] if len(fb) else [])
+    for i in range(0, len(figs), 2):
+        cols = st.columns(2, gap="medium")
+        for col, (key, fig) in zip(cols, figs[i:i + 2]):
+            with col:
+                charts.show(fig, key, sc.name)
 
 with tab_play:
     st.caption("Press Play or drag the slider: the four panels draw the process up to that time.")
-    st.plotly_chart(charts.playback(r), width="stretch", config={"displayModeBar": False})
+    st.plotly_chart(theme.white(charts.playback(r)), width="stretch", config={"displayModeBar": False}, theme=None)
+    st.caption("To export a chart, use the Charts tab: every chart there has PNG, SVG, legend and data downloads.")
 
 with tab_phase:
     ps = phase_summary(r)
@@ -92,13 +94,13 @@ st.divider()
 theme.panel_title("Export")
 d1, d2, d3, _ = st.columns([1, 1, 1, 2])
 d1.download_button("CSV hourly", table_csv(r), f"{sc.name}_hourly.csv", "text/csv", icon=":material/download:",
-                   width="stretch")
+                   width="stretch", on_click="ignore")
 d2.download_button("CSV daily", table_csv(r, daily=True), f"{sc.name}_daily.csv", "text/csv",
-                   icon=":material/download:", width="stretch")
+                   icon=":material/download:", width="stretch", on_click="ignore")
 if st.session_state.get("_xlsx") and st.session_state._xlsx[0] == sc.name:
     d3.download_button("Excel", st.session_state._xlsx[1], f"{sc.name}.xlsx",
                        "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
-                       icon=":material/download:", type="primary", width="stretch")
+                       icon=":material/download:", type="primary", width="stretch", on_click="ignore")
 elif d3.button("Prepare Excel", icon=":material/table_view:", width="stretch"):
     from bioprocess.io.export import results_xlsx   # lazy: openpyxl is slow to import in the browser
     st.session_state._xlsx = (sc.name, results_xlsx(r))

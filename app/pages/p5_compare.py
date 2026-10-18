@@ -3,7 +3,7 @@ import streamlit as st
 
 from bioprocess.compare import key_numbers_table, long_series
 from bioprocess.simulate import simulate
-from ui import state, theme
+from ui import charts, state, theme
 from ui.charts import SCEN_COLORS, _layout
 
 theme.top("Compare", "Overlay the current scenario and saved ones. Runs that stopped early are listed but not drawn.")
@@ -55,7 +55,8 @@ VARS.update({f"{m} (mM)": m for m in mets})
 chosen = st.multiselect("Charts", list(VARS), default=["VCC (cells/mL)", *[f"{m} (mM)" for m in mets[:2]],
                                                        "Working volume (L)", "Cum. fresh medium (L)"])
 data = long_series({n: results[n] for n in names_ok}, [VARS[c] for c in chosen])
-cols = st.columns(2)
+st.caption("Each chart: camera icon saves a PNG; Plot SVG, Legend and Data CSV below it.")
+cols = st.columns(2, gap="medium")
 for j, label in enumerate(chosen):
     fig = go.Figure()
     for i, n in enumerate(names_ok):
@@ -64,4 +65,5 @@ for j, label in enumerate(chosen):
     _layout(fig, label, label.split("(")[-1].rstrip(")"))
     if VARS[label] == "vcc":
         fig.update_yaxes(exponentformat="E")
-    cols[j % 2].plotly_chart(fig, width="stretch")
+    with cols[j % 2]:
+        charts.show(fig, f"cmp_{VARS[label]}")

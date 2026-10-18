@@ -2,20 +2,22 @@
 from __future__ import annotations
 
 import plotly.graph_objects as go
+import streamlit as st
 from plotly.subplots import make_subplots
 
 from bioprocess.simulate import SimResult
 
-from . import theme  # noqa: F401  (registers the "bioprocess" Plotly template)
-from .tokens import ACCENT, HAIRLINE, SURFACE_2, TEXT, CHART, DANGER, HAIRLINE_STRONG, INFO, PHASE as PHASE_COLOR, TEXT_MUTED, TEXT_SUBTLE, WARNING
+from . import svg_export, theme  # noqa: F401  (theme registers the "bioprocess" Plotly template)
+from .tokens import (ACCENT, CHART, DANGER, HAIRLINE, HAIRLINE_STRONG, INFO, PHASE as PHASE_COLOR, SURFACE_2, TEXT,
+                     TEXT_MUTED, TEXT_SUBTLE, WARNING)
 
 MET_COLORS = [CHART[2], CHART[3], CHART[4], CHART[5], CHART[1], CHART[0], CHART[6]]   # glucose blue, lactate rose, ...
 SCEN_COLORS = CHART
 
 
 def _layout(fig: go.Figure, title: str, ytitle: str, height: int = 320) -> go.Figure:
-    fig.update_layout(title=dict(text=title, x=0, y=0.98, yanchor="top", font=dict(size=15)), height=height,
-                      hovermode="x unified", margin=dict(l=10, r=10, t=64, b=10),
+    fig.update_layout(title=dict(text=title, x=0.01, y=0.97, yanchor="top", font=dict(size=15)), height=height,
+                      hovermode="x unified", margin=dict(l=14, r=18, t=66, b=12),
                       legend=dict(orientation="h", x=0, y=1.0, yanchor="bottom", font=dict(size=11)),
                       xaxis_title="Process time (days)", yaxis_title=ytitle)
     return fig
@@ -25,7 +27,8 @@ def phase_bands(fig: go.Figure, r: SimResult, row=None, col=None) -> None:
     for p in r.plans:
         if p.type == "Batch":
             continue
-        fig.add_vrect(x0=p.start_day, x1=p.end_day, fillcolor=PHASE_COLOR[p.type], opacity=0.10, line_width=0, layer="below",
+        fig.add_vrect(x0=p.start_day, x1=p.end_day, fillcolor=PHASE_COLOR[p.type], opacity=0.12, line_width=0, layer="below",
+                      name=f"{p.type} phase",
                       row=row, col=col)
 
 
@@ -54,7 +57,8 @@ def metabolites(r: SimResult, t_d=None) -> go.Figure:
         fig.add_scatter(x=tb.t_d, y=tb[m.name], name=m.name, line=dict(color=c, width=2),
                         hovertemplate="%{y:.2f} mM")
         if m.limit is not None:
-            fig.add_hline(y=m.limit, line_dash="dash", line_color=c, opacity=0.6,
+            fig.add_hline(y=m.limit, line_dash="dash", line_color=c, opacity=0.7,
+                          name=f"{m.name} {'minimum' if m.sign < 0 else 'maximum'}",
                           annotation_text=f"{m.name} {'min' if m.sign < 0 else 'max'} {m.limit:g}",
                           annotation_font_size=10)
     phase_bands(fig, r)
@@ -66,14 +70,15 @@ def volume(r: SimResult, t_d=None) -> go.Figure:
     tb, s = r.table, r.scenario.setup
     fig = go.Figure(go.Scatter(x=tb.t_d, y=tb.volume_L, name="Working volume", line=dict(color=ACCENT, width=2.4),
                                hovertemplate="%{y:.3f} L"))
-    fig.add_hrect(y0=s.v_min_L, y1=s.v_max_L, fillcolor=ACCENT, opacity=0.06, line_width=0)
+    fig.add_hrect(y0=s.v_min_L, y1=s.v_max_L, fillcolor=ACCENT, opacity=0.06, line_width=0, name="Allowed volume window")
     lines = [(s.v_min_L, "V_min", DANGER), (s.v_max_L, "V_max", DANGER)]
     if abs(s.vessel_volume_L - s.v_max_L) > 1e-9:
         lines.append((s.vessel_volume_L, "Vessel", TEXT_SUBTLE))
     else:
         lines[1] = (s.v_max_L, "V_max = vessel", DANGER)
     for y, name, colr in lines:
-        fig.add_hline(y=y, line_dash="dash", line_color=colr, annotation_text=f"{name} {y:g} L", annotation_font_size=10)
+        fig.add_hline(y=y, line_dash="dash", line_color=colr, annotation_text=f"{name} {y:g} L", annotation_font_size=10,
+                      name=name)
     phase_bands(fig, r)
     marker(fig, t_d)
     _layout(fig, "Working volume vs window", "L")
@@ -169,3 +174,32 @@ def playback(r: SimResult, max_frames: int = 120) -> go.Figure:
                       font=dict(size=1, color="rgba(0,0,0,0)"))],
     )
     return fig
+
+
+# ---------------------------------------------------------------- one chart = white card + download row
+def plot_config(filename: str) -> dict:
+    """Modebar trimmed to what matters; the camera saves a high-resolution PNG on white, in the browser."""
+    return {"displaylogo": False, "displayModeBar": True,
+            "modeBarButtonsToRemove": ["select2d", "lasso2d", "autoScale2d", "toggleSpikelines",
+                                       "hoverClosestCartesian", "hoverCompareCartesian"],
+            "toImageButtonOptions": {"format": "png", "filename": filename, "scale": 3}}
+
+
+def _slug(text: str) -> str:
+    return "".join(ch if ch.isalnum() else "_" for ch in text).strip("_").lower()[:60] or "chart"
+
+
+def show(fig: go.Figure, key: str, scenario: str = "") -> None:
+    """Render a chart with its downloads: PNG (camera on the chart), SVG, legend only (SVG) and data (CSV)."""
+    title = fig.layout.title.text or key
+    base = _slug(f"{scenario}_{title}" if scenario else title)
+    st.plotly_chart(theme.white(fig), width="stretch", config=plot_config(base), key=f"chart_{key}", theme=None)
+    row = st.container(horizontal=True, gap="small")
+    c1 = c2 = c3 = row
+    c1.download_button("Plot SVG", svg_export.figure_svg(fig), f"{base}.svg", "image/svg+xml", key=f"svg_{key}",
+                       icon=":material/image:", help="Vector image of this chart, white background.", on_click="ignore")
+    c2.download_button("Legend", svg_export.legend_svg(fig, title), f"{base}_legend.svg", "image/svg+xml",
+                       key=f"leg_{key}", icon=":material/palette:",
+                       help="Only the colour key of this chart (SVG), to place next to the plot.", on_click="ignore")
+    c3.download_button("Data CSV", svg_export.figure_csv(fig), f"{base}.csv", "text/csv", key=f"csv_{key}",
+                       icon=":material/table_view:", help="The plotted values (series, x, y).", on_click="ignore")

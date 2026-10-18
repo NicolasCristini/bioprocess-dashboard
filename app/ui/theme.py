@@ -16,11 +16,12 @@ from . import tokens as t
 CSS = f"""
 <style>
 :root {{
-  --bp-canvas:{t.CANVAS}; --bp-surface:{t.SURFACE}; --bp-surface-2:{t.SURFACE_2};
+  --bp-canvas:{t.CANVAS}; --bp-surface:{t.SURFACE}; --bp-surface-2:{t.SURFACE_2}; --bp-sidebar:{t.SIDEBAR};
   --bp-line:{t.HAIRLINE}; --bp-line-strong:{t.HAIRLINE_STRONG};
   --bp-text:{t.TEXT}; --bp-muted:{t.TEXT_MUTED}; --bp-subtle:{t.TEXT_SUBTLE};
   --bp-accent:{t.ACCENT}; --bp-accent-hover:{t.ACCENT_HOVER}; --bp-on-accent:{t.ON_ACCENT}; --bp-accent-soft:{t.ACCENT_SOFT};
   --bp-danger:{t.DANGER}; --bp-warning:{t.WARNING}; --bp-info:{t.INFO};
+  --bp-danger-soft:{t.DANGER_SOFT}; --bp-warning-soft:{t.WARNING_SOFT};
   --bp-card:{t.RADIUS_CARD}; --bp-input:{t.RADIUS_INPUT}; --bp-pill:{t.RADIUS_PILL};
   --bp-mono:"{t.FONT_MONO}", ui-monospace, SFMono-Regular, Menlo, monospace;
 }}
@@ -42,10 +43,16 @@ hr {{ border-color: var(--bp-line) !important; margin: 1.25rem 0 !important; }}
 [data-testid="stSidebarHeader"] {{ padding-bottom: .5rem; }}
 [data-testid="stLogo"] {{ height: 2.2rem; max-width: 100%; }}
 [data-testid="stSidebar"] {{ border-right: 1px solid var(--bp-line); }}
-[data-testid="stSidebarNav"] a {{ border-radius: var(--bp-pill); margin: 1px 6px; padding: 4px 12px; }}
+[data-testid="stSidebarNav"] a {{ border-radius: var(--bp-pill); margin: 2px 6px; padding: 7px 14px; }}
+[data-testid="stSidebarNav"] a span {{ font-size: 16.5px !important; font-weight: 500; color: var(--bp-text) !important; }}
+[data-testid="stSidebarNav"] a [data-testid="stIconMaterial"] {{ font-size: 20px !important; }}
+[data-testid="stSidebar"] [data-testid="stMarkdownContainer"] p, [data-testid="stSidebar"] [data-testid="stCaptionContainer"] p {{ font-size: 15px !important; }}
+[data-testid="stSidebar"] .bp-panel-title {{ font-size: 17px; }}
+[data-testid="stSidebar"] .bp-issue {{ font-size: 15.5px; }}
+[data-testid="stSidebar"] .bp-chip {{ font-size: 14px; }}
 [data-testid="stSidebarNav"] a[aria-current="page"] {{ background: var(--bp-accent-soft); }}
 [data-testid="stSidebarNav"] a[aria-current="page"] span {{ color: var(--bp-accent) !important; }}
-[data-testid="stNavSectionHeader"] {{ color: var(--bp-subtle) !important; font-size: 11px; letter-spacing: .08em; text-transform: uppercase; }}
+[data-testid="stNavSectionHeader"], [data-testid="stNavSectionHeader"] * {{ color: var(--bp-muted) !important; font-size: 13px !important; letter-spacing: .08em; text-transform: uppercase; font-weight: 600; }}
 
 /* ---------- cards: bordered containers become surfaces */
 [data-testid="stVerticalBlockBorderWrapper"]:has(> div > [data-testid="stVerticalBlock"]) {{
@@ -69,7 +76,7 @@ hr {{ border-color: var(--bp-line) !important; margin: 1.25rem 0 !important; }}
 
 /* ---------- inputs */
 [data-baseweb="input"], [data-baseweb="select"] > div, [data-baseweb="textarea"] {{ border-radius: var(--bp-input) !important; }}
-[data-testid="stWidgetLabel"] p {{ color: var(--bp-muted) !important; font-size: 12.5px !important; }}
+[data-testid="stWidgetLabel"] p {{ color: var(--bp-muted) !important; font-size: 13.5px !important; }}
 input[type="number"] {{ font-family: var(--bp-mono); }}
 
 /* ---------- tabs: segmented pill control */
@@ -80,7 +87,7 @@ input[type="number"] {{ font-family: var(--bp-mono); }}
   border: none !important; box-shadow: none !important; }}
 [data-testid="stTab"]::after, [data-testid="stTab"]::before {{ display: none !important; }}
 [data-testid="stTab"] p {{ color: var(--bp-muted); font-size: 13px; }}
-[data-testid="stTab"][aria-selected="true"] {{ background: var(--bp-surface-2); box-shadow: inset 0 0 0 1px var(--bp-line-strong) !important; }}
+[data-testid="stTab"][aria-selected="true"] {{ background: var(--bp-surface-2); box-shadow: inset 0 0 0 1px var(--bp-line-strong), 0 1px 2px rgba(21,24,28,.08) !important; }}
 [data-testid="stTab"][aria-selected="true"] p {{ color: var(--bp-text); }}
 [data-testid="stTab"]:hover p {{ color: var(--bp-text); }}
 
@@ -91,40 +98,44 @@ input[type="number"] {{ font-family: var(--bp-mono); }}
 [data-testid="stMetricValue"] {{ font-family: var(--bp-mono); letter-spacing: -0.02em; }}
 [data-testid="stMetricLabel"] p {{ color: var(--bp-muted) !important; }}
 [data-testid="stFileUploaderDropzone"] {{ border-radius: var(--bp-card); background: var(--bp-surface); }}
+[data-testid="stPlotlyChart"] {{ background: #FFFFFF; border: 1px solid var(--bp-line); border-radius: var(--bp-card);
+  overflow: hidden; box-sizing: border-box; }}
+[data-testid="stPlotlyChart"] .modebar-container {{ right: 8px !important; top: 4px !important; }}
+.bp-dl-row {{ margin-top: -4px; }}
 
 /* ---------- custom components */
 .bp-top {{ display:flex; align-items:flex-end; justify-content:space-between; gap:16px; flex-wrap:wrap;
   padding: 6px 0 18px; border-bottom: 1px solid var(--bp-line); margin-bottom: 20px; }}
 .bp-top h1 {{ margin:0; padding:0; font-size:1.6rem; font-weight:600; letter-spacing:-0.025em; color:var(--bp-text); }}
-.bp-top .bp-sub {{ color:var(--bp-muted); font-size:13.5px; margin-top:4px; max-width:70ch; }}
+.bp-top .bp-sub {{ color:var(--bp-muted); font-size:14.5px; margin-top:4px; max-width:70ch; }}
 .bp-chips {{ display:flex; gap:6px; flex-wrap:wrap; }}
 .bp-chip {{ display:inline-flex; align-items:center; gap:6px; border:1px solid var(--bp-line-strong); border-radius:var(--bp-pill);
-  padding:3px 10px; font-size:12px; color:var(--bp-muted); background:var(--bp-surface); white-space:nowrap; }}
+  padding:3px 10px; font-size:13px; color:var(--bp-muted); background:var(--bp-surface); white-space:nowrap; }}
 .bp-chip b {{ color:var(--bp-text); font-weight:500; font-family:var(--bp-mono); }}
-.bp-chip.accent {{ border-color: transparent; background: var(--bp-accent-soft); color: var(--bp-accent); }}
-.bp-chip.warning {{ border-color: transparent; background: rgba(221,164,73,.12); color: var(--bp-warning); }}
-.bp-chip.danger {{ border-color: transparent; background: rgba(229,88,94,.12); color: var(--bp-danger); }}
+.bp-chip.accent {{ border-color: var(--bp-accent); background: var(--bp-surface-2); color: var(--bp-accent); font-weight: 500; }}
+.bp-chip.warning {{ border-color: var(--bp-warning); background: var(--bp-surface-2); color: var(--bp-warning); font-weight: 500; }}
+.bp-chip.danger {{ border-color: var(--bp-danger); background: var(--bp-surface-2); color: var(--bp-danger); font-weight: 500; }}
 
 .bp-kpis {{ display:grid; grid-template-columns: repeat(auto-fill, minmax(210px, 1fr)); gap:10px; margin: 4px 0 18px; }}
 .bp-kpi {{ background:var(--bp-surface); border:1px solid var(--bp-line); border-radius:var(--bp-card); padding:14px 16px; }}
-.bp-kpi.lead {{ border-color: rgba(63,184,160,.35); background: linear-gradient(180deg, rgba(63,184,160,.08), transparent 70%), var(--bp-surface); }}
-.bp-kpi .l {{ color:var(--bp-muted); font-size:12px; }}
+.bp-kpi.lead {{ border-color: var(--bp-accent); background: var(--bp-surface-2); box-shadow: inset 3px 0 0 var(--bp-accent); }}
+.bp-kpi .l {{ color:var(--bp-muted); font-size:13px; }}
 .bp-kpi .v {{ font-family:var(--bp-mono); font-size:1.55rem; font-weight:500; letter-spacing:-0.03em; color:var(--bp-text); margin-top:6px; line-height:1.1; }}
 .bp-kpi .v small {{ font-size:.8rem; color:var(--bp-muted); margin-left:4px; font-weight:400; letter-spacing:0; }}
 .bp-kpi .h {{ color:var(--bp-subtle); font-size:11.5px; margin-top:6px; }}
 
 .bp-issues {{ display:flex; flex-direction:column; gap:6px; margin: 4px 0 8px; }}
 .bp-issue {{ display:grid; grid-template-columns: 84px 1fr; gap:12px; align-items:start; padding:9px 12px;
-  border:1px solid var(--bp-line); border-radius:var(--bp-input); background:var(--bp-surface); font-size:13px; color:var(--bp-text); }}
+  border:1px solid var(--bp-line); border-radius:var(--bp-input); background:var(--bp-surface); font-size:14px; color:var(--bp-text); }}
 .bp-issue .lv {{ font-size:11px; font-weight:600; letter-spacing:.04em; text-transform:uppercase; padding-top:1px; }}
-.bp-issue.block {{ border-color: rgba(229,88,94,.45); }} .bp-issue.block .lv {{ color:var(--bp-danger); }}
+.bp-issue.block {{ border-color: var(--bp-danger); }} .bp-issue.block .lv {{ color:var(--bp-danger); }}
 .bp-issue.warning .lv {{ color:var(--bp-warning); }}
 .bp-issue.info .lv {{ color:var(--bp-info); }}
 .bp-issue .ph {{ color:var(--bp-muted); font-family:var(--bp-mono); font-size:12px; margin-right:6px; }}
-.bp-ok {{ padding:9px 12px; border-radius:var(--bp-input); background:var(--bp-accent-soft); color:var(--bp-accent); font-size:13px; }}
+.bp-ok {{ padding:9px 12px; border-radius:var(--bp-input); background:var(--bp-surface-2); border:1px solid var(--bp-accent); color:var(--bp-accent); font-size:13px; }}
 
 .bp-timeline {{ display:flex; height:30px; border-radius:var(--bp-pill); overflow:hidden; border:1px solid var(--bp-line); margin:4px 0 6px; }}
-.bp-timeline div {{ display:flex; align-items:center; padding:0 12px; font-size:12px; color:#0B0C0E; font-weight:500; white-space:nowrap; overflow:hidden; }}
+.bp-timeline div {{ display:flex; align-items:center; padding:0 12px; font-size:12px; color:{t.TEXT}; font-weight:500; white-space:nowrap; overflow:hidden; }}
 .bp-timeline div + div {{ border-left: 2px solid var(--bp-canvas); }}
 .bp-axis {{ display:flex; justify-content:space-between; color:var(--bp-subtle); font-size:11.5px; font-family:var(--bp-mono); }}
 
@@ -136,7 +147,7 @@ input[type="number"] {{ font-family: var(--bp-mono); }}
 .bp-step .d {{ color:var(--bp-muted); font-size:12.5px; line-height:1.45; }}
 .bp-panel-title {{ font-weight:600; font-size:14px; margin: 0 0 2px; color: var(--bp-text); }}
 .bp-panel-sub {{ color:var(--bp-muted); font-size:12.5px; margin-bottom:10px; }}
-.bp-badge {{ display:inline-block; border-radius:var(--bp-pill); padding:2px 10px; font-size:12px; font-weight:500; color:#0B0C0E; }}
+.bp-badge {{ display:inline-block; border-radius:var(--bp-pill); padding:2px 10px; font-size:12px; font-weight:500; color:{t.TEXT}; }}
 .bp-brand {{ display:flex; align-items:center; gap:10px; padding: 2px 4px 10px; }}
 .bp-brand .mk {{ width:26px; height:26px; border-radius:8px; background: var(--bp-accent); color: var(--bp-on-accent);
   display:grid; place-items:center; font-weight:700; font-size:13px; font-family:var(--bp-mono); }}
@@ -165,15 +176,15 @@ def inject() -> None:
 
 # ---------------------------------------------------------------- Plotly
 def _register_template() -> None:
-    axis = dict(gridcolor=t.HAIRLINE, zerolinecolor=t.HAIRLINE, linecolor=t.HAIRLINE_STRONG,
+    axis = dict(gridcolor=t.GRID, zerolinecolor=t.GRID, linecolor=t.HAIRLINE_STRONG, automargin=True,
                 tickfont=dict(color=t.TEXT_SUBTLE, family=t.FONT_MONO, size=11),
                 title=dict(font=dict(color=t.TEXT_MUTED, size=12)))
     pio.templates["bioprocess"] = go.layout.Template(layout=go.Layout(
         font=dict(family=f"{t.FONT}, system-ui, sans-serif", color=t.TEXT_MUTED, size=12),
-        paper_bgcolor="rgba(0,0,0,0)", plot_bgcolor="rgba(0,0,0,0)",
+        paper_bgcolor="#FFFFFF", plot_bgcolor="#FFFFFF",
         colorway=t.CHART, xaxis=axis, yaxis=axis,
         legend=dict(bgcolor="rgba(0,0,0,0)", font=dict(color=t.TEXT_MUTED, size=11.5)),
-        hoverlabel=dict(bgcolor=t.SURFACE_2, bordercolor=t.HAIRLINE_STRONG,
+        hoverlabel=dict(bgcolor="#FFFFFF", bordercolor=t.HAIRLINE_STRONG,
                         font=dict(family=t.FONT_MONO, color=t.TEXT, size=12)),
         title=dict(font=dict(color=t.TEXT, size=14, family=t.FONT)),
     ))
@@ -184,6 +195,12 @@ _register_template()
 
 
 # ---------------------------------------------------------------- HTML components
+def white(fig):
+    """Streamlit's front end paints paper_bgcolor with the page colour unless the figure sets it explicitly."""
+    fig.update_layout(paper_bgcolor="#FFFFFF", plot_bgcolor="#FFFFFF")
+    return fig
+
+
 def esc(s) -> str:
     return _html.escape(str(s))
 

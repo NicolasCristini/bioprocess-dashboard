@@ -4,7 +4,7 @@ import streamlit as st
 
 from bioprocess.checks import validate
 from bioprocess.models import REGIME_DAYS
-from ui import state, theme
+from ui import charts, state, theme
 from ui.widgets import show_issues
 
 sc = state.sc()
@@ -42,9 +42,9 @@ with st.container(border=True):
     for r in sc.regimes:
         fig.add_bar(x=list(range(1, REGIME_DAYS + 1)), y=[r.pct(d) / 100 * v0 for d in range(1, REGIME_DAYS + 1)],
                     name=r.name, marker_cornerradius=3)
-    fig.update_layout(barmode="group", height=260, margin=dict(l=10, r=10, t=10, b=10), bargap=0.3,
-                      xaxis_title="Phase day", yaxis_title="L/day",
-                      legend=dict(orientation="h", y=1.08, yanchor="bottom", x=0))
-    st.plotly_chart(fig, width="stretch", config={"displayModeBar": False})
+    fig.update_layout(barmode="group", height=280, margin=dict(l=10, r=10, t=40, b=10), bargap=0.3,
+                      title=dict(text="Feed volume per phase day", x=0), xaxis_title="Phase day", yaxis_title="L/day",
+                      legend=dict(orientation="h", y=1.0, yanchor="bottom", x=0.35))
+    charts.show(fig, "regimes", sc.name)
 
 show_issues([i for i in validate(sc) if i.where == "regimes"])

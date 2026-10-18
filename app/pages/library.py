@@ -42,7 +42,7 @@ for d in items:
         state.replace(store.load(d["file"]), saved=True)
         st.switch_page("pages/p4_results.py")
     e.download_button("", (store.root / d["file"]).read_bytes(), d["file"], "application/x-yaml",
-                      key=f"dl_{d['file']}", help="Download YAML", icon=":material/download:")
+                      key=f"dl_{d['file']}", help="Download YAML", icon=":material/download:", on_click="ignore")
     with f.popover("", icon=":material/delete:"):
         st.write(f"Delete “{d['name']}”?")
         if st.button("Delete", key=f"del_{d['file']}", type="primary"):
@@ -76,8 +76,8 @@ with u1:
 with u2:
     st.markdown("**Backup / new**")
     st.download_button("Export all (.zip)", store.export_all(), "scenarios_backup.zip", "application/zip",
-                       disabled=not items, icon=":material/archive:")
-    st.download_button("Current as YAML", to_yaml(sc), f"{slug(sc.name)}.yaml", "application/x-yaml", icon=":material/download:")
+                       disabled=not items, icon=":material/archive:", on_click="ignore")
+    st.download_button("Current as YAML", to_yaml(sc), f"{slug(sc.name)}.yaml", "application/x-yaml", icon=":material/download:", on_click="ignore")
     if st.button("New from example", icon=":material/add:"):
         state.replace(example_scenario(), example=True)
         st.switch_page("pages/p1_setup.py")

@@ -19,7 +19,9 @@ def test_build_static_site(tmp_path):
     assert f'content="{CSP}"' in page and '<base href="/some-repo/" />' in page
     assert "{{" not in page
     cfg = (out / "theme" / "config.toml").read_text()
-    assert 'primaryColor = "#3FB8A0"' in cfg and 'buttonRadius = "full"' in cfg and "[server]" not in cfg
+    sys.path.insert(0, str(ROOT / "app"))
+    from ui import tokens
+    assert f'primaryColor = "{tokens.ACCENT}"' in cfg and 'buttonRadius = "full"' in cfg and "[server]" not in cfg
     assert ".streamlit/config.toml" in json.loads((out / "manifest.json").read_text())
     assert (out / "app" / "static" / "fonts" / "Geist-Variable.woff2").is_file()
     assert (out / "404.html").read_text() == page                      # deep links load the app on static hosts

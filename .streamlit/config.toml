@@ -13,31 +13,31 @@ gatherUsageStats = false
 toolbarMode = "minimal"
 
 [theme]
-base = "dark"
-primaryColor = "#3FB8A0"
-backgroundColor = "#0B0C0E"
-secondaryBackgroundColor = "#1A1D22"
-textColor = "#E8EAED"
-borderColor = "#262A31"
-dataframeBorderColor = "#262A31"
-dataframeHeaderBackgroundColor = "#1A1D22"
+base = "light"
+primaryColor = "#0F685A"
+backgroundColor = "#D7DBE0"
+secondaryBackgroundColor = "#FFFFFF"
+textColor = "#15181C"
+borderColor = "#C3C8CF"
+dataframeBorderColor = "#C3C8CF"
+dataframeHeaderBackgroundColor = "#FFFFFF"
 showWidgetBorder = true
-linkColor = "#3FB8A0"
-redColor = "#E5585E"
-orangeColor = "#DDA449"
-yellowColor = "#DDA449"
-blueColor = "#6C9BEA"
-greenColor = "#3FB8A0"
+linkColor = "#0F685A"
+redColor = "#B4323A"
+orangeColor = "#99600E"
+yellowColor = "#99600E"
+blueColor = "#2F6BC7"
+greenColor = "#0F685A"
 font = "Geist"
 headingFont = "Geist"
 codeFont = "Geist Mono"
-baseFontSize = 14
+baseFontSize = 15
 headingFontWeights = [600, 600, 600, 600, 600, 600]
 metricValueFontWeight = 500
 baseRadius = "10px"
 buttonRadius = "full"
 showSidebarBorder = true
-chartCategoricalColors = ["#3FB8A0", "#E39A4F", "#6C9BEA", "#E46F7A", "#D2B555", "#A48BD6", "#7D8590"]
+chartCategoricalColors = ["#0F685A", "#D9822B", "#2F6BC7", "#C8414B", "#A8892A", "#7D5BB8", "#6B7280"]
 
 [[theme.fontFaces]]
 family = "Geist"
@@ -50,6 +50,6 @@ url = "app/static/fonts/GeistMono-Variable.woff2"
 weight = "100 900"
 
 [theme.sidebar]
-backgroundColor = "#131519"
-secondaryBackgroundColor = "#1A1D22"
-borderColor = "#262A31"
+backgroundColor = "#E4E7EB"
+secondaryBackgroundColor = "#FFFFFF"
+borderColor = "#C3C8CF"
